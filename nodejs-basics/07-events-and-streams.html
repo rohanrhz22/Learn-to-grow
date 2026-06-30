@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 7 — EventEmitter & Streams (the Node "feel") · Learn Node.js</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --page-bg:#eaf2fc; --card-bg:#ffffff; --accent:#1657c4; --accent-bright:#1f6fe0;
+  --accent-soft:#e3edfb; --ink:#16202e; --ink-soft:#44546a; --code-bg:#0b2a52;
+  --code-ink:#d6e4ff; --border:#d6e3f5; --green:#1f9d57; --red:#d6455a; --amber:#c98a12;
+  --shadow:0 8px 24px rgba(22,87,196,.08); --shadow-lg:0 16px 44px rgba(22,87,196,.14);
+  --t-key:#7cc4ff; --t-str:#9ff0c4; --t-num:#ffd479; --t-com:#6f8cb8; --t-fn:#d6a3ff; --t-out:#cdd9ee;
+}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--page-bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  line-height:1.65; font-size:16px; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1040px; margin:0 auto; padding:28px 20px 80px}
+a{color:var(--accent); text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* HERO */
+.hero{
+  position:relative; overflow:hidden; border-radius:24px; color:#fff;
+  background:linear-gradient(135deg,#1f6fe0 0%,#1657c4 55%,#0e3f93 100%);
+  padding:38px 36px; box-shadow:var(--shadow-lg);
+}
+.hero::after{
+  content:""; position:absolute; top:-90px; right:-70px; width:280px; height:280px;
+  border-radius:50%; background:radial-gradient(circle at center,rgba(255,255,255,.30),rgba(255,255,255,0) 70%);
+}
+.eyebrow{
+  display:inline-block; text-transform:uppercase; letter-spacing:.14em; font-size:12px;
+  font-weight:700; background:rgba(255,255,255,.16); padding:6px 12px; border-radius:999px;
+  margin-bottom:14px;
+}
+.hero h1{margin:.1em 0 .25em; font-size:clamp(28px,5vw,46px); font-weight:800; line-height:1.1; letter-spacing:-.01em}
+.hero .lead{margin:0; max-width:62ch; font-size:clamp(15px,2.2vw,19px); color:#eaf2ffe6}
+.chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:18px}
+.chip{
+  background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.28);
+  color:#fff; padding:6px 13px; border-radius:999px; font-size:13.5px; font-weight:600;
+}
+
+/* SECTION BANNER */
+.banner{
+  display:flex; align-items:center; gap:16px; margin:34px 0 18px; padding:16px 18px;
+  border-radius:16px; background:linear-gradient(135deg,var(--accent-soft),#f3f8ff);
+  border:1px solid var(--border);
+}
+.num{
+  flex:0 0 auto; width:46px; height:46px; border-radius:13px; display:grid; place-items:center;
+  font-weight:800; font-size:19px; color:#fff;
+  background:linear-gradient(135deg,#1f6fe0,#1657c4); box-shadow:var(--shadow);
+}
+.banner h2{margin:0; font-size:21px; font-weight:800; letter-spacing:-.01em}
+.banner p{margin:2px 0 0; color:var(--ink-soft); font-size:14px}
+
+/* GRID + PCARDS */
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:18px}
+.pcard{
+  display:block; background:var(--card-bg); border:1px solid var(--border); border-radius:18px;
+  padding:20px 20px 18px; box-shadow:var(--shadow); color:inherit;
+  transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.pcard:hover{transform:translateY(-3px); box-shadow:var(--shadow-lg); border-color:#b9d0f2; text-decoration:none}
+.pn{
+  display:inline-grid; place-items:center; width:34px; height:34px; border-radius:10px;
+  background:var(--accent-soft); color:var(--accent); font-weight:800; font-size:14px; margin-bottom:12px;
+}
+.pcard h3{margin:0 0 6px; font-size:17.5px; font-weight:750; display:flex; align-items:center; gap:8px}
+.pcard p{margin:0 0 14px; color:var(--ink-soft); font-size:14px; min-height:38px}
+.lvl{
+  display:inline-block; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:999px;
+  text-transform:uppercase; letter-spacing:.05em;
+}
+.lvl.beg{background:#e3f6ec; color:var(--green)}
+.lvl.int{background:#fef3da; color:var(--amber)}
+.lvl.adv{background:#fbe4e8; color:var(--red)}
+
+/* CRUMBS */
+.crumbs{margin:22px 0 8px; font-size:13.5px; color:var(--ink-soft)}
+.crumbs a{font-weight:600}
+.crumbs span{margin:0 8px; opacity:.6}
+
+/* CARD (lesson content) */
+.card{
+  background:var(--card-bg); border:1px solid var(--border); border-radius:18px;
+  padding:24px 26px; box-shadow:var(--shadow); margin:18px 0;
+}
+.card>h3:first-child,.card>h4:first-child{margin-top:0}
+.card h3{font-size:20px; font-weight:780; letter-spacing:-.01em; margin:.2em 0 .5em; display:flex; align-items:center; flex-wrap:wrap; gap:10px}
+.card h4{font-size:16.5px; font-weight:750; margin:1.1em 0 .4em}
+.card h5{font-size:15px; font-weight:700; margin:1em 0 .3em; color:var(--ink-soft)}
+.tag{
+  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+  background:var(--accent-soft); color:var(--accent); padding:4px 10px; border-radius:999px;
+}
+.card p{margin:.6em 0}
+.card ul,.card ol{margin:.5em 0; padding-left:1.4em}
+.card li{margin:.3em 0}
+.card li::marker{color:var(--accent); font-weight:700}
+.card code{
+  background:#eef4fe; color:#0e3f93; padding:1px 6px; border-radius:6px; font-size:.92em;
+  font-family:"SF Mono","Fira Code","Cascadia Code",Consolas,monospace;
+}
+hr{border:none; border-top:1px solid var(--border); margin:1.4em 0}
+
+/* CALLOUTS */
+.callout{
+  display:flex; gap:12px; align-items:flex-start; border-radius:14px; padding:14px 16px;
+  margin:14px 0; border:1px solid var(--border); font-size:14.5px;
+}
+.callout .ico{font-size:18px; line-height:1.4}
+.callout.note{background:#eef4fe; border-color:#cfe0fa}
+.callout.tip{background:#e9f8ef; border-color:#c7ebd6}
+.callout.warn{background:#fdeef0; border-color:#f6cdd5}
+.callout code{background:rgba(255,255,255,.7)}
+
+/* CODE */
+pre{
+  position:relative; background:var(--code-bg); color:var(--code-ink); border-radius:14px;
+  padding:18px 18px 16px; overflow:auto; margin:14px 0; box-shadow:var(--shadow);
+  font-family:"SF Mono","Fira Code","Cascadia Code",Consolas,monospace; font-size:13.5px; line-height:1.6;
+}
+pre code{font-family:inherit; background:none; color:inherit; padding:0; white-space:pre}
+.lang-chip{
+  position:absolute; top:10px; right:12px; font-size:10.5px; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; color:#9fc0ee; background:rgba(255,255,255,.07);
+  padding:3px 8px; border-radius:7px; pointer-events:none;
+}
+.t-key{color:var(--t-key)} .t-str{color:var(--t-str)} .t-num{color:var(--t-num)}
+.t-com{color:var(--t-com); font-style:italic} .t-fn{color:var(--t-fn)} .t-out{color:var(--t-out)}
+
+/* TABLE */
+.tablewrap{overflow-x:auto; margin:14px 0}
+table{border-collapse:collapse; width:100%; font-size:14px}
+th,td{border:1px solid var(--border); padding:9px 12px; text-align:left; vertical-align:top}
+th{background:var(--accent-soft); font-weight:700; color:var(--accent)}
+tbody tr:nth-child(even){background:#f6faff}
+
+/* DIAGRAM */
+.diagram{margin:16px 0; text-align:center}
+.diagram svg{max-width:100%; height:auto}
+.cap{font-size:13px; color:var(--ink-soft); margin-top:6px; text-align:center}
+
+/* SUMMARY checklist */
+.learned{list-style:none; padding-left:0}
+.learned li{position:relative; padding-left:28px; margin:.4em 0}
+.learned li::before{content:"✓"; position:absolute; left:0; top:0; color:var(--green); font-weight:800}
+
+/* PAGER */
+.pager{display:flex; justify-content:space-between; gap:14px; margin-top:30px}
+.pager a{
+  flex:1; background:var(--card-bg); border:1px solid var(--border); border-radius:14px;
+  padding:14px 18px; box-shadow:var(--shadow); font-weight:650;
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.pager a:hover{transform:translateY(-2px); box-shadow:var(--shadow-lg); text-decoration:none}
+.pager a.next{text-align:right}
+.pager a small{display:block; font-size:11.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-soft); font-weight:700}
+.pager a.disabled{opacity:.4; pointer-events:none}
+
+/* FOOTER */
+footer{margin-top:40px; padding-top:20px; border-top:1px solid var(--border); color:var(--ink-soft); font-size:13.5px; text-align:center}
+
+@media (max-width:760px){
+  .wrap{padding:18px 14px 60px}
+  .hero{padding:28px 22px; border-radius:20px}
+  .card{padding:20px 18px}
+  .grid{grid-template-columns:1fr}
+  .pager{flex-direction:column}
+  .pager a.next{text-align:left}
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="hero">
+  <span class="eyebrow">Node.js Core</span>
+  <h1>Lesson 7 — EventEmitter &amp; Streams (the Node "feel")</h1>
+  
+  <div class="chips"><span class="chip">Time: 60 min</span><span class="chip">Goal: Understand events (the pattern half of Node is built on) and streams (how Node moves large data without blowing up memory).</span></div>
+</header>
+<nav class="crumbs" aria-label="Breadcrumb">
+  <a href="../index.html">Learn Node.js</a><span>/</span>
+  <a href="index.html">Node.js Core</a><span>/</span>Lesson 7 — EventEmitter &amp; Streams (the Node "feel")
+</nav>
+<section class="card"><hr></section>
+<section class="card"><h3>1. Events — Node's nervous system (15 min) <span class="tag">Concept</span></h3><p>Tons of Node objects "emit" events: an HTTP server emits <code>"request"</code>, a file stream emits <code>"data"</code>, a process emits <code>"exit"</code>. You <strong>listen</strong> with <code>.on(eventName, handler)</code>.</p><p>This is the <strong>publish/subscribe</strong> pattern, and Node ships it as the <code>events</code> module.</p><h4>Build your own emitter</h4><pre><code data-lang="js">const EventEmitter = require("events");
+
+const bus = new EventEmitter();
+
+// Subscribe
+bus.on("greet", (name) =&gt; {
+  console.log("Hello,", name);
+});
+
+bus.on("greet", (name) =&gt; {
+  console.log("Welcome,", name);
+});
+
+// Publish
+bus.emit("greet", "Sandya");
+// Hello, Sandya
+// Welcome, Sandya</code></pre><p>Other useful methods:</p><pre><code data-lang="js">bus.once("login", (user) =&gt; console.log("First login by", user));  // fires once only
+bus.off("greet", handler);                                          // unsubscribe
+bus.listenerCount("greet");                                         // 2</code></pre><h4>Why this matters</h4><p>You'll meet emitters constantly in Node:</p><ul><li><code>server.on("request", handler)</code> — HTTP requests</li><li><code>socket.on("data", handler)</code> — TCP / WebSocket data</li><li><code>process.on("exit", handler)</code> — cleanup before shutdown</li><li><code>readStream.on("data", chunk =&gt; ...)</code> — file reading</li></ul><p>Knowing the pattern means you instantly know how to use any of them.</p><h4>Tiny realistic example</h4><pre><code data-lang="js">const EventEmitter = require("events");
+
+class OrderQueue extends EventEmitter {
+  add(order) {
+    console.log("Queued:", order.id);
+    this.emit("new-order", order);
+  }
+}
+
+const q = new OrderQueue();
+
+q.on("new-order", (o) =&gt; console.log(" → notify kitchen for", o.id));
+q.on("new-order", (o) =&gt; console.log(" → notify customer for", o.id));
+
+q.add({ id: 101 });
+q.add({ id: 102 });</code></pre><p>The publisher (<code>OrderQueue</code>) doesn't know or care who's listening. <strong>Loose coupling</strong> — the heart of clean Node design.</p></section>
+<section class="card"><h3>2. Streams — work on data piece by piece (15 min) <span class="tag">Concept</span></h3><p><strong>Problem:</strong> you need to copy a 5 GB video file. If you <code>fs.readFile</code> it, Node tries to load 5 GB into RAM. Boom.</p><p><strong>Solution:</strong> streams. Read a small <strong>chunk</strong>, do something with it, throw it away, read the next chunk. Constant low memory regardless of file size.</p><p>Node has 4 stream types:</p><div class="tablewrap"><table><thead><tr><th>Type</th><th>Example</th></tr></thead><tbody><tr><td><strong>Readable</strong></td><td><code>fs.createReadStream(file)</code>, HTTP request body</td></tr><tr><td><strong>Writable</strong></td><td><code>fs.createWriteStream(file)</code>, HTTP response, <code>process.stdout</code></td></tr><tr><td><strong>Duplex</strong></td><td>TCP socket (read + write)</td></tr><tr><td><strong>Transform</strong></td><td>gzip compression (read in, transform, write out)</td></tr></tbody></table></div><h4>Read a file with a stream</h4><pre><code data-lang="js">const fs = require("fs");
+
+const stream = fs.createReadStream("big.txt", { encoding: "utf-8" });
+
+let total = 0;
+
+stream.on("data", (chunk) =&gt; {
+  total += chunk.length;
+  console.log("Got chunk of", chunk.length, "chars");
+});
+
+stream.on("end", () =&gt; {
+  console.log("Done. Total:", total);
+});
+
+stream.on("error", (err) =&gt; {
+  console.error("Failed:", err.message);
+});</code></pre><div class="callout note"><span class="ico" aria-hidden="true">📌</span><div>Streams are <strong>EventEmitters under the hood</strong> — <code>data</code>, <code>end</code>, <code>error</code> are events. See how it ties back to section 1?</div></div><h4>Pipe — connect a readable to a writable</h4><p>The killer feature. Copy a file with constant memory:</p><pre><code data-lang="js">const fs = require("fs");
+
+fs.createReadStream("input.txt")
+  .pipe(fs.createWriteStream("output.txt"))
+  .on("finish", () =&gt; console.log("Copied!"));</code></pre><p>Add a transform in the middle (gzip):</p><pre><code data-lang="js">const fs   = require("fs");
+const zlib = require("zlib");
+
+fs.createReadStream("input.txt")
+  .pipe(zlib.createGzip())              // transform
+  .pipe(fs.createWriteStream("input.txt.gz"))
+  .on("finish", () =&gt; console.log("Compressed!"));</code></pre><p>Three lines. Works on any file size — KB, GB, doesn't matter.</p><h4>The modern way: <code>stream/promises.pipeline</code></h4><p>Pipes don't propagate errors well across multiple stages. Use <code>pipeline</code>:</p><pre><code data-lang="js">const { pipeline } = require("stream/promises");
+const fs   = require("fs");
+const zlib = require("zlib");
+
+async function gzipFile() {
+  await pipeline(
+    fs.createReadStream("input.txt"),
+    zlib.createGzip(),
+    fs.createWriteStream("input.txt.gz"),
+  );
+  console.log("Done");
+}
+
+gzipFile().catch(console.error);</code></pre><p>Cleaner errors, plays well with <code>async/await</code>. Prefer this in new code.</p></section>
+<section class="card"><h3>3. Why this is "the Node feel" (5 min) <span class="tag">Why it matters</span></h3><p>Almost every Node API is built from <strong>events + streams</strong>:</p><ul><li>An HTTP server <strong>emits</strong> a <code>request</code>, whose body <strong>is a readable stream</strong>, and whose response <strong>is a writable stream</strong>.</li><li>A WebSocket <strong>emits</strong> <code>message</code>.</li><li>A TCP server <strong>emits</strong> <code>connection</code> with duplex streams.</li></ul><p>Once events and streams click, you can read any Node library's docs and know how to plug it in.</p></section>
+<section class="card"><h3>4. Mini exercise (15 min) <span class="tag">Hands-on</span></h3><h4>Part A — Event-based logger</h4><p>Create <code>logger.js</code>:</p><pre><code data-lang="js">const EventEmitter = require("events");
+
+class Logger extends EventEmitter {
+  log(level, message) {
+    this.emit("log", { level, message, time: new Date().toISOString() });
+  }
+}
+
+module.exports = Logger;</code></pre><pre><code data-lang="js">// app.js
+const Logger = require("./logger");
+const log = new Logger();
+
+log.on("log", (e) =&gt; console.log(`[${e.time}] ${e.level.toUpperCase()} - ${e.message}`));
+log.on("log", (e) =&gt; {
+  if (e.level === "error") console.log("  ⚠️  Pretend we paged on-call");
+});
+
+log.log("info",  "App started");
+log.log("warn",  "Cache miss");
+log.log("error", "DB connection lost");</code></pre><p>Run and observe both listeners firing.</p><h4>Part B — Stream copy + uppercase transform</h4><ol><li>Create <code>input.txt</code> with a few lines.</li><li>Write <code>upper.js</code>:</li></ol><pre><code data-lang="js">   const { pipeline } = require("stream/promises");
+   const fs = require("fs");
+   const { Transform } = require("stream");
+
+   const upper = new Transform({
+     transform(chunk, _enc, cb) {
+       cb(null, chunk.toString().toUpperCase());
+     },
+   });
+
+   pipeline(
+     fs.createReadStream("input.txt"),
+     upper,
+     fs.createWriteStream("output.txt"),
+   ).then(() =&gt; console.log("done"));</code></pre><ol><li>Run, then <code>cat output.txt</code> (or open it). All caps.</li></ol><hr></section>
+<section class="card"><h3>5-min recap <span class="tag">Summary</span></h3><ol><li>What does <code>.on()</code> do? What about <code>.emit()</code>?</li><li>Why are streams better than <code>fs.readFile</code> for large files?</li><li>Name the 4 stream types.</li><li>What does <code>pipeline</code> give you over chained <code>.pipe()</code>?</li></ol><p>When you're done → <a href="08-tiny-http-server.html">08-tiny-http-server.md</a></p></section>
+<nav class="pager" aria-label="Lesson navigation"><a class="prev" href="06-async-basics.html"><small>Previous</small>Lesson 6 — Async Basics: Callbacks → Promises → `async/await`</a><a class="next" href="08-tiny-http-server.html"><small>Next</small>Lesson 8 — Tiny HTTP Server From Scratch (No Express Yet)</a></nav>
+<footer>Learn Node.js · Node.js Core · Part 7 of 8 · Built with a light soft-UI docs theme.</footer>
+</main>
+<script>
+(function(){
+  var BT = String.fromCharCode(96);
+  var KW = {
+    js: new Set(("const let var function return if else for while do switch case break continue "+
+      "new class extends super this typeof instanceof in of try catch finally throw async await "+
+      "yield import export default from as void delete null undefined true false NaN Infinity "+
+      "static get set require module exports process console global __dirname __filename "+
+      "Promise Array Object String Number Boolean Map Set JSON Math Date Symbol Buffer setTimeout "+
+      "setInterval setImmediate fetch").split(" ")),
+    bash: new Set(("npm npx node nvm cd ls mkdir rm rmdir git curl wget echo export cat touch pwd "+
+      "sudo code set chmod mv cp grep find which clear pnpm yarn docker").split(" ")),
+    json: new Set("true false null".split(" ")),
+    text: new Set([])
+  };
+  function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+  function isIdStart(c){return /[A-Za-z_$]/.test(c);}
+  function isId(c){return /[A-Za-z0-9_$]/.test(c);}
+  function highlight(code, lang){
+    if(lang==="text"){return '<span class="t-out">'+esc(code)+'</span>';}
+    var lineComment = (lang==="bash") ? "#" : "//";
+    var kw = KW[lang] || KW.text;
+    var out=""; var i=0; var n=code.length;
+    while(i<n){
+      var c=code[i];
+      if(lineComment && code.substr(i,lineComment.length)===lineComment){
+        var j=code.indexOf("\n",i); if(j<0)j=n;
+        out+='<span class="t-com">'+esc(code.slice(i,j))+'</span>'; i=j; continue;
+      }
+      if(lang==="js" && c==="/" && code[i+1]==="*"){
+        var e=code.indexOf("*/",i+2); e=(e<0)?n:e+2;
+        out+='<span class="t-com">'+esc(code.slice(i,e))+'</span>'; i=e; continue;
+      }
+      if(c==='"' || c==="'" || c===BT){
+        var k=i+1; while(k<n && code[k]!==c){ if(code[k]==="\\")k++; k++; } k++;
+        if(k>n)k=n;
+        out+='<span class="t-str">'+esc(code.slice(i,k))+'</span>'; i=k; continue;
+      }
+      if(/[0-9]/.test(c)){
+        var p=i; while(p<n && /[0-9._xXa-fA-F]/.test(code[p]))p++;
+        out+='<span class="t-num">'+esc(code.slice(i,p))+'</span>'; i=p; continue;
+      }
+      if(isIdStart(c)){
+        var q=i; while(q<n && isId(code[q]))q++;
+        var word=code.slice(i,q);
+        var r=q; while(r<n && code[r]===" ")r++;
+        if(kw.has(word)){ out+='<span class="t-key">'+esc(word)+'</span>'; }
+        else if(code[r]==="("){ out+='<span class="t-fn">'+esc(word)+'</span>'; }
+        else { out+=esc(word); }
+        i=q; continue;
+      }
+      out+=esc(c); i++;
+    }
+    return out;
+  }
+  var labels={js:"JS",bash:"BASH",json:"JSON",text:"TEXT"};
+  var blocks=document.querySelectorAll("pre > code[data-lang]");
+  for(var b=0;b<blocks.length;b++){
+    var el=blocks[b];
+    var lang=el.getAttribute("data-lang")||"text";
+    el.innerHTML=highlight(el.textContent, lang);
+    var chip=document.createElement("span");
+    chip.className="lang-chip";
+    chip.textContent=labels[lang]||lang.toUpperCase();
+    el.parentNode.appendChild(chip);
+  }
+})();
+</script>
+</body>
+</html>

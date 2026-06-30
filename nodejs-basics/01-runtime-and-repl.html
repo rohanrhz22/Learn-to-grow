@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 1 — The Node Runtime, REPL & How Scripts Run · Learn Node.js</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --page-bg:#eaf2fc; --card-bg:#ffffff; --accent:#1657c4; --accent-bright:#1f6fe0;
+  --accent-soft:#e3edfb; --ink:#16202e; --ink-soft:#44546a; --code-bg:#0b2a52;
+  --code-ink:#d6e4ff; --border:#d6e3f5; --green:#1f9d57; --red:#d6455a; --amber:#c98a12;
+  --shadow:0 8px 24px rgba(22,87,196,.08); --shadow-lg:0 16px 44px rgba(22,87,196,.14);
+  --t-key:#7cc4ff; --t-str:#9ff0c4; --t-num:#ffd479; --t-com:#6f8cb8; --t-fn:#d6a3ff; --t-out:#cdd9ee;
+}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--page-bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  line-height:1.65; font-size:16px; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1040px; margin:0 auto; padding:28px 20px 80px}
+a{color:var(--accent); text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* HERO */
+.hero{
+  position:relative; overflow:hidden; border-radius:24px; color:#fff;
+  background:linear-gradient(135deg,#1f6fe0 0%,#1657c4 55%,#0e3f93 100%);
+  padding:38px 36px; box-shadow:var(--shadow-lg);
+}
+.hero::after{
+  content:""; position:absolute; top:-90px; right:-70px; width:280px; height:280px;
+  border-radius:50%; background:radial-gradient(circle at center,rgba(255,255,255,.30),rgba(255,255,255,0) 70%);
+}
+.eyebrow{
+  display:inline-block; text-transform:uppercase; letter-spacing:.14em; font-size:12px;
+  font-weight:700; background:rgba(255,255,255,.16); padding:6px 12px; border-radius:999px;
+  margin-bottom:14px;
+}
+.hero h1{margin:.1em 0 .25em; font-size:clamp(28px,5vw,46px); font-weight:800; line-height:1.1; letter-spacing:-.01em}
+.hero .lead{margin:0; max-width:62ch; font-size:clamp(15px,2.2vw,19px); color:#eaf2ffe6}
+.chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:18px}
+.chip{
+  background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.28);
+  color:#fff; padding:6px 13px; border-radius:999px; font-size:13.5px; font-weight:600;
+}
+
+/* SECTION BANNER */
+.banner{
+  display:flex; align-items:center; gap:16px; margin:34px 0 18px; padding:16px 18px;
+  border-radius:16px; background:linear-gradient(135deg,var(--accent-soft),#f3f8ff);
+  border:1px solid var(--border);
+}
+.num{
+  flex:0 0 auto; width:46px; height:46px; border-radius:13px; display:grid; place-items:center;
+  font-weight:800; font-size:19px; color:#fff;
+  background:linear-gradient(135deg,#1f6fe0,#1657c4); box-shadow:var(--shadow);
+}
+.banner h2{margin:0; font-size:21px; font-weight:800; letter-spacing:-.01em}
+.banner p{margin:2px 0 0; color:var(--ink-soft); font-size:14px}
+
+/* GRID + PCARDS */
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:18px}
+.pcard{
+  display:block; background:var(--card-bg); border:1px solid var(--border); border-radius:18px;
+  padding:20px 20px 18px; box-shadow:var(--shadow); color:inherit;
+  transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.pcard:hover{transform:translateY(-3px); box-shadow:var(--shadow-lg); border-color:#b9d0f2; text-decoration:none}
+.pn{
+  display:inline-grid; place-items:center; width:34px; height:34px; border-radius:10px;
+  background:var(--accent-soft); color:var(--accent); font-weight:800; font-size:14px; margin-bottom:12px;
+}
+.pcard h3{margin:0 0 6px; font-size:17.5px; font-weight:750; display:flex; align-items:center; gap:8px}
+.pcard p{margin:0 0 14px; color:var(--ink-soft); font-size:14px; min-height:38px}
+.lvl{
+  display:inline-block; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:999px;
+  text-transform:uppercase; letter-spacing:.05em;
+}
+.lvl.beg{background:#e3f6ec; color:var(--green)}
+.lvl.int{background:#fef3da; color:var(--amber)}
+.lvl.adv{background:#fbe4e8; color:var(--red)}
+
+/* CRUMBS */
+.crumbs{margin:22px 0 8px; font-size:13.5px; color:var(--ink-soft)}
+.crumbs a{font-weight:600}
+.crumbs span{margin:0 8px; opacity:.6}
+
+/* CARD (lesson content) */
+.card{
+  background:var(--card-bg); border:1px solid var(--border); border-radius:18px;
+  padding:24px 26px; box-shadow:var(--shadow); margin:18px 0;
+}
+.card>h3:first-child,.card>h4:first-child{margin-top:0}
+.card h3{font-size:20px; font-weight:780; letter-spacing:-.01em; margin:.2em 0 .5em; display:flex; align-items:center; flex-wrap:wrap; gap:10px}
+.card h4{font-size:16.5px; font-weight:750; margin:1.1em 0 .4em}
+.card h5{font-size:15px; font-weight:700; margin:1em 0 .3em; color:var(--ink-soft)}
+.tag{
+  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+  background:var(--accent-soft); color:var(--accent); padding:4px 10px; border-radius:999px;
+}
+.card p{margin:.6em 0}
+.card ul,.card ol{margin:.5em 0; padding-left:1.4em}
+.card li{margin:.3em 0}
+.card li::marker{color:var(--accent); font-weight:700}
+.card code{
+  background:#eef4fe; color:#0e3f93; padding:1px 6px; border-radius:6px; font-size:.92em;
+  font-family:"SF Mono","Fira Code","Cascadia Code",Consolas,monospace;
+}
+hr{border:none; border-top:1px solid var(--border); margin:1.4em 0}
+
+/* CALLOUTS */
+.callout{
+  display:flex; gap:12px; align-items:flex-start; border-radius:14px; padding:14px 16px;
+  margin:14px 0; border:1px solid var(--border); font-size:14.5px;
+}
+.callout .ico{font-size:18px; line-height:1.4}
+.callout.note{background:#eef4fe; border-color:#cfe0fa}
+.callout.tip{background:#e9f8ef; border-color:#c7ebd6}
+.callout.warn{background:#fdeef0; border-color:#f6cdd5}
+.callout code{background:rgba(255,255,255,.7)}
+
+/* CODE */
+pre{
+  position:relative; background:var(--code-bg); color:var(--code-ink); border-radius:14px;
+  padding:18px 18px 16px; overflow:auto; margin:14px 0; box-shadow:var(--shadow);
+  font-family:"SF Mono","Fira Code","Cascadia Code",Consolas,monospace; font-size:13.5px; line-height:1.6;
+}
+pre code{font-family:inherit; background:none; color:inherit; padding:0; white-space:pre}
+.lang-chip{
+  position:absolute; top:10px; right:12px; font-size:10.5px; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; color:#9fc0ee; background:rgba(255,255,255,.07);
+  padding:3px 8px; border-radius:7px; pointer-events:none;
+}
+.t-key{color:var(--t-key)} .t-str{color:var(--t-str)} .t-num{color:var(--t-num)}
+.t-com{color:var(--t-com); font-style:italic} .t-fn{color:var(--t-fn)} .t-out{color:var(--t-out)}
+
+/* TABLE */
+.tablewrap{overflow-x:auto; margin:14px 0}
+table{border-collapse:collapse; width:100%; font-size:14px}
+th,td{border:1px solid var(--border); padding:9px 12px; text-align:left; vertical-align:top}
+th{background:var(--accent-soft); font-weight:700; color:var(--accent)}
+tbody tr:nth-child(even){background:#f6faff}
+
+/* DIAGRAM */
+.diagram{margin:16px 0; text-align:center}
+.diagram svg{max-width:100%; height:auto}
+.cap{font-size:13px; color:var(--ink-soft); margin-top:6px; text-align:center}
+
+/* SUMMARY checklist */
+.learned{list-style:none; padding-left:0}
+.learned li{position:relative; padding-left:28px; margin:.4em 0}
+.learned li::before{content:"✓"; position:absolute; left:0; top:0; color:var(--green); font-weight:800}
+
+/* PAGER */
+.pager{display:flex; justify-content:space-between; gap:14px; margin-top:30px}
+.pager a{
+  flex:1; background:var(--card-bg); border:1px solid var(--border); border-radius:14px;
+  padding:14px 18px; box-shadow:var(--shadow); font-weight:650;
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.pager a:hover{transform:translateY(-2px); box-shadow:var(--shadow-lg); text-decoration:none}
+.pager a.next{text-align:right}
+.pager a small{display:block; font-size:11.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-soft); font-weight:700}
+.pager a.disabled{opacity:.4; pointer-events:none}
+
+/* FOOTER */
+footer{margin-top:40px; padding-top:20px; border-top:1px solid var(--border); color:var(--ink-soft); font-size:13.5px; text-align:center}
+
+@media (max-width:760px){
+  .wrap{padding:18px 14px 60px}
+  .hero{padding:28px 22px; border-radius:20px}
+  .card{padding:20px 18px}
+  .grid{grid-template-columns:1fr}
+  .pager{flex-direction:column}
+  .pager a.next{text-align:left}
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="hero">
+  <span class="eyebrow">Node.js Core</span>
+  <h1>Lesson 1 — The Node Runtime, REPL &amp; How Scripts Run</h1>
+  
+  <div class="chips"><span class="chip">Time: 60 min</span><span class="chip">Goal: Know what "Node" actually <em>is</em>, use the REPL like a calculator, and understand what happens when you type <code>node file.js</code>.</span></div>
+</header>
+<nav class="crumbs" aria-label="Breadcrumb">
+  <a href="../index.html">Learn Node.js</a><span>/</span>
+  <a href="index.html">Node.js Core</a><span>/</span>Lesson 1 — The Node Runtime, REPL &amp; How Scripts Run
+</nav>
+<section class="card"><hr></section>
+<section class="card"><h3>1. What is a "runtime"? (10 min) <span class="tag">Concept</span></h3><p>A <strong>runtime</strong> is the environment that takes your code and actually executes it. The browser is a runtime for JavaScript. <strong>Node is also a runtime for JavaScript</strong> — but on your computer, not in a webpage.</p><p>Node bundles three things into one program:</p><ol><li><strong>V8</strong> — Google's JavaScript engine (same one inside Chrome). It turns JS into machine code.</li><li><strong>libuv</strong> — a C library that gives Node async I/O, the event loop, threads, timers.</li><li><strong>Node's standard library</strong> — built-in modules (<code>fs</code>, <code>http</code>, <code>path</code>, <code>os</code>, etc.).</li></ol><pre><code data-lang="text">┌──────────────────────────────────────┐
+│           Your JS code               │
+├──────────────────────────────────────┤
+│  Node stdlib (fs, http, path, ...)   │
+├──────────────────┬───────────────────┤
+│   V8 (JS engine) │  libuv (async I/O)│
+├──────────────────┴───────────────────┤
+│              Your OS                 │
+└──────────────────────────────────────┘</code></pre><p>When you type <code>node app.js</code>, Node loads <code>app.js</code>, hands it to V8, and provides the stdlib + libuv to the running code.</p></section>
+<section class="card"><h3>2. The REPL — Node as a calculator (15 min) <span class="tag">Concept</span></h3><p><strong>REPL</strong> = <strong>R</strong>ead → <strong>E</strong>val → <strong>P</strong>rint → <strong>L</strong>oop. Just type <code>node</code> in a terminal:</p><pre><code data-lang="text">PS C:\node-learning&gt; node
+Welcome to Node.js v20.x.x.
+Type ".help" for more information.
+&gt;</code></pre><p>You can now type any JS expression and see the result instantly. Great for trying things.</p><p>Try these one by one:</p><pre><code data-lang="js">&gt; 2 + 3
+5
+&gt; const name = "Sandya"
+undefined
+&gt; `Hello, ${name}!`
+'Hello, Sandya!'
+&gt; [1, 2, 3].map(n =&gt; n * 10)
+[ 10, 20, 30 ]
+&gt; Math.random()
+0.7423...
+&gt; .help
+&gt; .exit         // or press Ctrl+C twice</code></pre><p>REPL features worth knowing:</p><ul><li><strong>Up arrow</strong> → previous command (history works)</li><li><strong>Tab</strong> → autocomplete (<code>Math.</code> then Tab shows all methods)</li><li><strong><code>_</code></strong> → result of the last expression</li></ul><pre><code data-lang="js">  &gt; 5 * 5
+  25
+  &gt; _ + 1
+  26</code></pre><ul><li><strong><code>.editor</code></strong> → multi-line mode (Ctrl+D to run)</li><li><strong><code>.save myfile.js</code></strong> → save your REPL session</li></ul><p><strong>Use the REPL</strong> whenever you wonder "what does this return?" It's faster than writing a file.</p></section>
+<section class="card"><h3>3. What happens when you run <code>node file.js</code> (10 min) <span class="tag">Concept</span></h3><pre><code data-lang="bash">node app.js
+   │
+   ├─→ Node starts up, initializes V8 + libuv
+   ├─→ Reads app.js from disk
+   ├─→ Wraps your code in a function (so `module`, `require`, `__dirname` are available)
+   ├─→ V8 executes the code top to bottom
+   ├─→ If there's pending async work (timers, I/O), Node enters the event loop and waits
+   └─→ When nothing is left to do, Node exits</code></pre><p>Demo it. Create <code>lifecycle.js</code>:</p><pre><code data-lang="js">console.log("1. Script started");
+
+setTimeout(() =&gt; console.log("3. Timer fired (1s later)"), 1000);
+
+console.log("2. Script reached end");
+
+// Node does NOT exit here — it stays alive because of the pending timer.</code></pre><p>Run: <code>node lifecycle.js</code>. You'll see 1, 2, then a 1-second pause, then 3, then Node exits. That waiting behavior <strong>is</strong> the event loop.</p></section>
+<section class="card"><h3>4. <code>process.argv</code> &amp; exit codes (10 min) <span class="tag">Concept</span></h3><p>Every Node program gets a <code>process</code> object with info about how it was invoked.</p><pre><code data-lang="js">// argv.js
+console.log("All args:", process.argv);
+console.log("Just my args:", process.argv.slice(2));</code></pre><p>Run: <code>node argv.js hello 42 --verbose</code></p><p>You'll see:</p><pre><code data-lang="text">All args: [
+  'C:\\...\\node.exe',     // [0] the Node binary
+  'C:\\...\\argv.js',      // [1] the script path
+  'hello',                 // [2] your args start here
+  '42',
+  '--verbose'
+]
+Just my args: [ 'hello', '42', '--verbose' ]</code></pre><p><strong>Exit codes</strong> — tell the OS / shell whether your script succeeded:</p><pre><code data-lang="js">if (!process.argv[2]) {
+  console.error("Error: name required");
+  process.exit(1);    // non-zero = failure
+}
+console.log("Hello,", process.argv[2]);
+// reaching the end = exit 0 = success</code></pre><p>This matters for shell scripts, CI/CD, and tools like <code>npm scripts</code>.</p></section>
+<section class="card"><h3>5. Running scripts via <code>npm</code> (preview) (5 min) <span class="tag">Summary</span></h3><p>In a project with a <code>package.json</code>, you can define shortcuts:</p><pre><code data-lang="json">{
+  "scripts": {
+    "start": "node app.js",
+    "hello": "node argv.js Sandya"
+  }
+}</code></pre><p>Then in the terminal:</p><pre><code data-lang="bash">npm start
+npm run hello</code></pre><p>You'll dive deep into this in Lesson 4. For now, just notice: <code>npm</code> is <em>also</em> a script runner, not only a package installer.</p></section>
+<section class="card"><h3>6. Mini exercise (10 min) <span class="tag">Hands-on</span></h3><p>Create <code>meta.js</code> that prints:</p><ul><li>Node version (<code>process.version</code>)</li><li>Platform (<code>process.platform</code>)</li><li>Current working directory (<code>process.cwd()</code>)</li><li>Number of args you passed (<code>process.argv.length - 2</code>)</li><li>The args themselves, one per line</li></ul><p>Run it with: <code>node meta.js a b c</code> and check the output.</p><p><strong>Bonus:</strong> if no args are given, print "no args" and <code>process.exit(1)</code>. Then run <code>echo $LASTEXITCODE</code> (PowerShell) to see the exit code.</p><hr></section>
+<section class="card"><h3>5-min recap <span class="tag">Summary</span></h3><ol><li>Name the three big pieces inside Node (V8, libuv, stdlib).</li><li>What is the REPL and when would you use it?</li><li>Why does <code>node lifecycle.js</code> not exit immediately?</li><li>What is <code>process.argv[2]</code>?</li></ol><p>When you're done → <a href="02-globals-and-event-loop.html">02-globals-and-event-loop.md</a></p></section>
+<nav class="pager" aria-label="Lesson navigation"><a class="prev" href="index.html"><small>Previous</small>Node.js Basics — Beginner Deep Dive</a><a class="next" href="02-globals-and-event-loop.html"><small>Next</small>Lesson 2 — Globals, `process` &amp; the Event Loop (Gently)</a></nav>
+<footer>Learn Node.js · Node.js Core · Part 1 of 8 · Built with a light soft-UI docs theme.</footer>
+</main>
+<script>
+(function(){
+  var BT = String.fromCharCode(96);
+  var KW = {
+    js: new Set(("const let var function return if else for while do switch case break continue "+
+      "new class extends super this typeof instanceof in of try catch finally throw async await "+
+      "yield import export default from as void delete null undefined true false NaN Infinity "+
+      "static get set require module exports process console global __dirname __filename "+
+      "Promise Array Object String Number Boolean Map Set JSON Math Date Symbol Buffer setTimeout "+
+      "setInterval setImmediate fetch").split(" ")),
+    bash: new Set(("npm npx node nvm cd ls mkdir rm rmdir git curl wget echo export cat touch pwd "+
+      "sudo code set chmod mv cp grep find which clear pnpm yarn docker").split(" ")),
+    json: new Set("true false null".split(" ")),
+    text: new Set([])
+  };
+  function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+  function isIdStart(c){return /[A-Za-z_$]/.test(c);}
+  function isId(c){return /[A-Za-z0-9_$]/.test(c);}
+  function highlight(code, lang){
+    if(lang==="text"){return '<span class="t-out">'+esc(code)+'</span>';}
+    var lineComment = (lang==="bash") ? "#" : "//";
+    var kw = KW[lang] || KW.text;
+    var out=""; var i=0; var n=code.length;
+    while(i<n){
+      var c=code[i];
+      if(lineComment && code.substr(i,lineComment.length)===lineComment){
+        var j=code.indexOf("\n",i); if(j<0)j=n;
+        out+='<span class="t-com">'+esc(code.slice(i,j))+'</span>'; i=j; continue;
+      }
+      if(lang==="js" && c==="/" && code[i+1]==="*"){
+        var e=code.indexOf("*/",i+2); e=(e<0)?n:e+2;
+        out+='<span class="t-com">'+esc(code.slice(i,e))+'</span>'; i=e; continue;
+      }
+      if(c==='"' || c==="'" || c===BT){
+        var k=i+1; while(k<n && code[k]!==c){ if(code[k]==="\\")k++; k++; } k++;
+        if(k>n)k=n;
+        out+='<span class="t-str">'+esc(code.slice(i,k))+'</span>'; i=k; continue;
+      }
+      if(/[0-9]/.test(c)){
+        var p=i; while(p<n && /[0-9._xXa-fA-F]/.test(code[p]))p++;
+        out+='<span class="t-num">'+esc(code.slice(i,p))+'</span>'; i=p; continue;
+      }
+      if(isIdStart(c)){
+        var q=i; while(q<n && isId(code[q]))q++;
+        var word=code.slice(i,q);
+        var r=q; while(r<n && code[r]===" ")r++;
+        if(kw.has(word)){ out+='<span class="t-key">'+esc(word)+'</span>'; }
+        else if(code[r]==="("){ out+='<span class="t-fn">'+esc(word)+'</span>'; }
+        else { out+=esc(word); }
+        i=q; continue;
+      }
+      out+=esc(c); i++;
+    }
+    return out;
+  }
+  var labels={js:"JS",bash:"BASH",json:"JSON",text:"TEXT"};
+  var blocks=document.querySelectorAll("pre > code[data-lang]");
+  for(var b=0;b<blocks.length;b++){
+    var el=blocks[b];
+    var lang=el.getAttribute("data-lang")||"text";
+    el.innerHTML=highlight(el.textContent, lang);
+    var chip=document.createElement("span");
+    chip.className="lang-chip";
+    chip.textContent=labels[lang]||lang.toUpperCase();
+    el.parentNode.appendChild(chip);
+  }
+})();
+</script>
+</body>
+</html>

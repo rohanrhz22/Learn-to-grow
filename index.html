@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Learn Node.js · From your first console.log to production deployment</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --page-bg:#eaf2fc; --card-bg:#ffffff; --accent:#1657c4; --accent-bright:#1f6fe0;
+  --accent-soft:#e3edfb; --ink:#16202e; --ink-soft:#44546a; --code-bg:#0b2a52;
+  --code-ink:#d6e4ff; --border:#d6e3f5; --green:#1f9d57; --red:#d6455a; --amber:#c98a12;
+  --shadow:0 8px 24px rgba(22,87,196,.08); --shadow-lg:0 16px 44px rgba(22,87,196,.14);
+  --t-key:#7cc4ff; --t-str:#9ff0c4; --t-num:#ffd479; --t-com:#6f8cb8; --t-fn:#d6a3ff; --t-out:#cdd9ee;
+}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--page-bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  line-height:1.65; font-size:16px; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1040px; margin:0 auto; padding:28px 20px 80px}
+a{color:var(--accent); text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* HERO */
+.hero{
+  position:relative; overflow:hidden; border-radius:24px; color:#fff;
+  background:linear-gradient(135deg,#1f6fe0 0%,#1657c4 55%,#0e3f93 100%);
+  padding:38px 36px; box-shadow:var(--shadow-lg);
+}
+.hero::after{
+  content:""; position:absolute; top:-90px; right:-70px; width:280px; height:280px;
+  border-radius:50%; background:radial-gradient(circle at center,rgba(255,255,255,.30),rgba(255,255,255,0) 70%);
+}
+.eyebrow{
+  display:inline-block; text-transform:uppercase; letter-spacing:.14em; font-size:12px;
+  font-weight:700; background:rgba(255,255,255,.16); padding:6px 12px; border-radius:999px;
+  margin-bottom:14px;
+}
+.hero h1{margin:.1em 0 .25em; font-size:clamp(28px,5vw,46px); font-weight:800; line-height:1.1; letter-spacing:-.01em}
+.hero .lead{margin:0; max-width:62ch; font-size:clamp(15px,2.2vw,19px); color:#eaf2ffe6}
+.chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:18px}
+.chip{
+  background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.28);
+  color:#fff; padding:6px 13px; border-radius:999px; font-size:13.5px; font-weight:600;
+}
+
+/* SECTION BANNER */
+.banner{
+  display:flex; align-items:center; gap:16px; margin:34px 0 18px; padding:16px 18px;
+  border-radius:16px; background:linear-gradient(135deg,var(--accent-soft),#f3f8ff);
+  border:1px solid var(--border);
+}
+.num{
+  flex:0 0 auto; width:46px; height:46px; border-radius:13px; display:grid; place-items:center;
+  font-weight:800; font-size:19px; color:#fff;
+  background:linear-gradient(135deg,#1f6fe0,#1657c4); box-shadow:var(--shadow);
+}
+.banner h2{margin:0; font-size:21px; font-weight:800; letter-spacing:-.01em}
+.banner p{margin:2px 0 0; color:var(--ink-soft); font-size:14px}
+
+/* GRID + PCARDS */
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:18px}
+.pcard{
+  display:block; background:var(--card-bg); border:1px solid var(--border); border-radius:18px;
+  padding:20px 20px 18px; box-shadow:var(--shadow); color:inherit;
+  transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.pcard:hover{transform:translateY(-3px); box-shadow:var(--shadow-lg); border-color:#b9d0f2; text-decoration:none}
+.pn{
+  display:inline-grid; place-items:center; width:34px; height:34px; border-radius:10px;
+  background:var(--accent-soft); color:var(--accent); font-weight:800; font-size:14px; margin-bottom:12px;
+}
+.pcard h3{margin:0 0 6px; font-size:17.5px; font-weight:750; display:flex; align-items:center; gap:8px}
+.pcard p{margin:0 0 14px; color:var(--ink-soft); font-size:14px; min-height:38px}
+.lvl{
+  display:inline-block; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:999px;
+  text-transform:uppercase; letter-spacing:.05em;
+}
+.lvl.beg{background:#e3f6ec; color:var(--green)}
+.lvl.int{background:#fef3da; color:var(--amber)}
+.lvl.adv{background:#fbe4e8; color:var(--red)}
+
+/* CRUMBS */
+.crumbs{margin:22px 0 8px; font-size:13.5px; color:var(--ink-soft)}
+.crumbs a{font-weight:600}
+.crumbs span{margin:0 8px; opacity:.6}
+
+/* CARD (lesson content) */
+.card{
+  background:var(--card-bg); border:1px solid var(--border); border-radius:18px;
+  padding:24px 26px; box-shadow:var(--shadow); margin:18px 0;
+}
+.card>h3:first-child,.card>h4:first-child{margin-top:0}
+.card h3{font-size:20px; font-weight:780; letter-spacing:-.01em; margin:.2em 0 .5em; display:flex; align-items:center; flex-wrap:wrap; gap:10px}
+.card h4{font-size:16.5px; font-weight:750; margin:1.1em 0 .4em}
+.card h5{font-size:15px; font-weight:700; margin:1em 0 .3em; color:var(--ink-soft)}
+.tag{
+  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+  background:var(--accent-soft); color:var(--accent); padding:4px 10px; border-radius:999px;
+}
+.card p{margin:.6em 0}
+.card ul,.card ol{margin:.5em 0; padding-left:1.4em}
+.card li{margin:.3em 0}
+.card li::marker{color:var(--accent); font-weight:700}
+.card code{
+  background:#eef4fe; color:#0e3f93; padding:1px 6px; border-radius:6px; font-size:.92em;
+  font-family:"SF Mono","Fira Code","Cascadia Code",Consolas,monospace;
+}
+hr{border:none; border-top:1px solid var(--border); margin:1.4em 0}
+
+/* CALLOUTS */
+.callout{
+  display:flex; gap:12px; align-items:flex-start; border-radius:14px; padding:14px 16px;
+  margin:14px 0; border:1px solid var(--border); font-size:14.5px;
+}
+.callout .ico{font-size:18px; line-height:1.4}
+.callout.note{background:#eef4fe; border-color:#cfe0fa}
+.callout.tip{background:#e9f8ef; border-color:#c7ebd6}
+.callout.warn{background:#fdeef0; border-color:#f6cdd5}
+.callout code{background:rgba(255,255,255,.7)}
+
+/* CODE */
+pre{
+  position:relative; background:var(--code-bg); color:var(--code-ink); border-radius:14px;
+  padding:18px 18px 16px; overflow:auto; margin:14px 0; box-shadow:var(--shadow);
+  font-family:"SF Mono","Fira Code","Cascadia Code",Consolas,monospace; font-size:13.5px; line-height:1.6;
+}
+pre code{font-family:inherit; background:none; color:inherit; padding:0; white-space:pre}
+.lang-chip{
+  position:absolute; top:10px; right:12px; font-size:10.5px; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; color:#9fc0ee; background:rgba(255,255,255,.07);
+  padding:3px 8px; border-radius:7px; pointer-events:none;
+}
+.t-key{color:var(--t-key)} .t-str{color:var(--t-str)} .t-num{color:var(--t-num)}
+.t-com{color:var(--t-com); font-style:italic} .t-fn{color:var(--t-fn)} .t-out{color:var(--t-out)}
+
+/* TABLE */
+.tablewrap{overflow-x:auto; margin:14px 0}
+table{border-collapse:collapse; width:100%; font-size:14px}
+th,td{border:1px solid var(--border); padding:9px 12px; text-align:left; vertical-align:top}
+th{background:var(--accent-soft); font-weight:700; color:var(--accent)}
+tbody tr:nth-child(even){background:#f6faff}
+
+/* DIAGRAM */
+.diagram{margin:16px 0; text-align:center}
+.diagram svg{max-width:100%; height:auto}
+.cap{font-size:13px; color:var(--ink-soft); margin-top:6px; text-align:center}
+
+/* SUMMARY checklist */
+.learned{list-style:none; padding-left:0}
+.learned li{position:relative; padding-left:28px; margin:.4em 0}
+.learned li::before{content:"✓"; position:absolute; left:0; top:0; color:var(--green); font-weight:800}
+
+/* PAGER */
+.pager{display:flex; justify-content:space-between; gap:14px; margin-top:30px}
+.pager a{
+  flex:1; background:var(--card-bg); border:1px solid var(--border); border-radius:14px;
+  padding:14px 18px; box-shadow:var(--shadow); font-weight:650;
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.pager a:hover{transform:translateY(-2px); box-shadow:var(--shadow-lg); text-decoration:none}
+.pager a.next{text-align:right}
+.pager a small{display:block; font-size:11.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-soft); font-weight:700}
+.pager a.disabled{opacity:.4; pointer-events:none}
+
+/* FOOTER */
+footer{margin-top:40px; padding-top:20px; border-top:1px solid var(--border); color:var(--ink-soft); font-size:13.5px; text-align:center}
+
+@media (max-width:760px){
+  .wrap{padding:18px 14px 60px}
+  .hero{padding:28px 22px; border-radius:20px}
+  .card{padding:20px 18px}
+  .grid{grid-template-columns:1fr}
+  .pager{flex-direction:column}
+  .pager a.next{text-align:left}
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="hero">
+  <span class="eyebrow">Developer Course Hub</span>
+  <h1>Learn Node.js</h1>
+  <p class="lead">From your first console.log to production deployment — a complete, code-first path through Node.js, from absolute beginner to deploying real apps.</p>
+  <div class="chips"><span class="chip">30 lessons</span><span class="chip">4 tracks</span><span class="chip">Beginner → Advanced</span><span class="chip">100% hands-on</span></div>
+</header>
+<section class="banner">
+  <div class="num">1</div>
+  <div><h2>Beginner Basics</h2><p>Zero-to-one on-ramp: the terminal, JavaScript, and your first Node script.</p></div>
+</section><div class="grid"><a class="pcard" href="beginner-basics/index.html">
+  <span class="pn">★</span>
+  <h3><span aria-hidden="true">🌱</span>Beginner Basics — Start Here Before Session 1</h3>
+  <p>This folder is the absolute-beginner on-ramp to the main 20-hour plan. If you've never written JavaScript, never used a termina…</p>
+  <span class="lvl beg">Beginner</span>
+</a><a class="pcard" href="beginner-basics/00-what-is-nodejs.html">
+  <span class="pn">01</span>
+  <h3><span aria-hidden="true">⚙️</span>Lesson 0 — What is Node.js? (Plain English)</h3>
+  <p>Time: 20 min · Goal: Understand what Node.js is and why people use it — no code yet.</p>
+  <span class="lvl beg">Beginner</span>
+</a><a class="pcard" href="beginner-basics/01-setup-and-terminal.html">
+  <span class="pn">02</span>
+  <h3><span aria-hidden="true">📦</span>Lesson 1 — Install Node, VS Code &amp; Use the Terminal</h3>
+  <p>Time: 45 min · Goal: Have a working dev environment and be comfortable typing 10 terminal commands.</p>
+  <span class="lvl beg">Beginner</span>
+</a><a class="pcard" href="beginner-basics/02-javascript-essentials.html">
+  <span class="pn">03</span>
+  <h3><span aria-hidden="true">🔧</span>Lesson 2 — JavaScript Essentials</h3>
+  <p>Time: 60 min · Goal: Understand variables, data types, operators, conditions, and loops. Enough JS to read any Node tutorial.</p>
+  <span class="lvl beg">Beginner</span>
+</a><a class="pcard" href="beginner-basics/03-functions-arrays-objects.html">
+  <span class="pn">04</span>
+  <h3><span aria-hidden="true">🧩</span>Lesson 3 — Functions, Arrays &amp; Objects</h3>
+  <p>Time: 60 min · Goal: Comfortably write functions and work with arrays/objects — the building blocks of every Node program.</p>
+  <span class="lvl beg">Beginner</span>
+</a><a class="pcard" href="beginner-basics/04-first-node-script.html">
+  <span class="pn">05</span>
+  <h3><span aria-hidden="true">⏳</span>Lesson 4 — Your First Node Script</h3>
+  <p>Time: 45 min · Goal: Run JavaScript files with Node, accept input, use a built-in module, and install your first npm package.</p>
+  <span class="lvl beg">Beginner</span>
+</a><a class="pcard" href="beginner-basics/05-errors-and-debugging.html">
+  <span class="pn">06</span>
+  <h3><span aria-hidden="true">🔌</span>Lesson 5 — Errors, Debugging &amp; Reading Stack Traces</h3>
+  <p>Time: 45 min · Goal: Stop panicking when red text appears. Read errors, fix them, and use VS Code's debugger.</p>
+  <span class="lvl beg">Beginner</span>
+</a><a class="pcard" href="beginner-basics/06-json-and-data.html">
+  <span class="pn">07</span>
+  <h3><span aria-hidden="true">🌐</span>Lesson 6 — JSON &amp; Working with Data</h3>
+  <p>Time: 45 min · Goal: Read &amp; write JSON — the universal data format used by every API, config file, and database you'll meet.</p>
+  <span class="lvl beg">Beginner</span>
+</a><a class="pcard" href="beginner-basics/07-git-and-github.html">
+  <span class="pn">08</span>
+  <h3><span aria-hidden="true">🗂️</span>Lesson 7 — Git &amp; GitHub Basics</h3>
+  <p>Time: 45 min · Goal: Track your code with Git, push it to GitHub, and never lose work again. Every session in the main plan end…</p>
+  <span class="lvl beg">Beginner</span>
+</a></div><section class="banner">
+  <div class="num">2</div>
+  <div><h2>Node.js Core</h2><p>The runtime itself: REPL, globals, the event loop, modules, npm, streams &amp; HTTP.</p></div>
+</section><div class="grid"><a class="pcard" href="nodejs-basics/index.html">
+  <span class="pn">★</span>
+  <h3><span aria-hidden="true">🔧</span>Node.js Basics — Beginner Deep Dive</h3>
+  <p>This folder is a gentle, beginner-focused tour of Node.js itself. While beginner-basics/ prepares you to start (JavaScript, ter…</p>
+  <span class="lvl int">Intermediate</span>
+</a><a class="pcard" href="nodejs-basics/01-runtime-and-repl.html">
+  <span class="pn">01</span>
+  <h3><span aria-hidden="true">🧩</span>Lesson 1 — The Node Runtime, REPL &amp; How Scripts Run</h3>
+  <p>Time: 60 min · Goal: Know what "Node" actually is, use the REPL like a calculator, and understand what happens when you type no…</p>
+  <span class="lvl int">Intermediate</span>
+</a><a class="pcard" href="nodejs-basics/02-globals-and-event-loop.html">
+  <span class="pn">02</span>
+  <h3><span aria-hidden="true">⏳</span>Lesson 2 — Globals, `process` &amp; the Event Loop (Gently)</h3>
+  <p>Time: 60 min · Goal: Know what's available without require, what process does, and get an intuitive feel for the event loop usi…</p>
+  <span class="lvl int">Intermediate</span>
+</a><a class="pcard" href="nodejs-basics/03-modules.html">
+  <span class="pn">03</span>
+  <h3><span aria-hidden="true">🔌</span>Lesson 3 — Modules: `require`, `module.exports`, and ESM</h3>
+  <p>Time: 60 min · Goal: Split code into multiple files. Understand both module systems (CommonJS vs ES Modules) and when to use wh…</p>
+  <span class="lvl int">Intermediate</span>
+</a><a class="pcard" href="nodejs-basics/04-npm-deep-dive.html">
+  <span class="pn">04</span>
+  <h3><span aria-hidden="true">🌐</span>Lesson 4 — npm Deep Dive: `package.json`, Scripts &amp; Semver</h3>
+  <p>Time: 60 min · Goal: Understand package.json line-by-line, install packages confidently, write npm scripts, and read version nu…</p>
+  <span class="lvl int">Intermediate</span>
+</a><a class="pcard" href="nodejs-basics/05-built-in-modules.html">
+  <span class="pn">05</span>
+  <h3><span aria-hidden="true">🗂️</span>Lesson 5 — Built-in Modules You'll Use Every Day</h3>
+  <p>Time: 60 min · Goal: Get hands-on with the 4 stdlib modules that appear in nearly every Node project: fs, path, os, url.</p>
+  <span class="lvl int">Intermediate</span>
+</a><a class="pcard" href="nodejs-basics/06-async-basics.html">
+  <span class="pn">06</span>
+  <h3><span aria-hidden="true">🧪</span>Lesson 6 — Async Basics: Callbacks → Promises → `async/await`</h3>
+  <p>Time: 60 min · Goal: Understand why async exists, walk through all three async styles, and write your own using async/await.</p>
+  <span class="lvl int">Intermediate</span>
+</a><a class="pcard" href="nodejs-basics/07-events-and-streams.html">
+  <span class="pn">07</span>
+  <h3><span aria-hidden="true">🚀</span>Lesson 7 — EventEmitter &amp; Streams (the Node "feel")</h3>
+  <p>Time: 60 min · Goal: Understand events (the pattern half of Node is built on) and streams (how Node moves large data without bl…</p>
+  <span class="lvl int">Intermediate</span>
+</a><a class="pcard" href="nodejs-basics/08-tiny-http-server.html">
+  <span class="pn">08</span>
+  <h3><span aria-hidden="true">🛡️</span>Lesson 8 — Tiny HTTP Server From Scratch (No Express Yet)</h3>
+  <p>Time: 60 min · Goal: Build a real HTTP server using only Node's built-in http module — so you understand what Express is doing…</p>
+  <span class="lvl int">Intermediate</span>
+</a></div><section class="banner">
+  <div class="num">3</div>
+  <div><h2>20-Hour Learning Plan</h2><p>Ten focused sessions from fundamentals all the way to testing &amp; deployment.</p></div>
+</section><div class="grid"><a class="pcard" href="nodejs-learning-plan/index.html">
+  <span class="pn">★</span>
+  <h3><span aria-hidden="true">🔌</span>Node.js in 20 Hours — Pareto (80/20) Learning Plan</h3>
+  <p>A focused 20-hour roadmap covering the 20% of Node.js concepts that deliver 80% of real-world results. Designed as 10 × 2-hour…</p>
+  <span class="lvl int">Intermediate</span>
+</a><a class="pcard" href="nodejs-learning-plan/session-01-fundamentals.html">
+  <span class="pn">01</span>
+  <h3><span aria-hidden="true">🌐</span>Session 1 — Node.js Fundamentals &amp; Runtime (2h)</h3>
+  <p>Goal: Understand what Node.js is, how the event loop works, and run your first scripts.</p>
+  <span class="lvl int">Intermediate</span>
+</a><a class="pcard" href="nodejs-learning-plan/session-02-modules-npm.html">
+  <span class="pn">02</span>
+  <h3><span aria-hidden="true">🗂️</span>Session 2 — Modules, npm &amp; Project Structure (2h)</h3>
+  <p>Goal: Master CommonJS + ES Modules, npm/package.json, and how real Node projects are organized.</p>
+  <span class="lvl int">Intermediate</span>
+</a><a class="pcard" href="nodejs-learning-plan/session-03-async.html">
+  <span class="pn">03</span>
+  <h3><span aria-hidden="true">🧪</span>Session 3 — Asynchronous JavaScript (2h)</h3>
+  <p>Goal: Become fluent in callbacks, Promises, and async/await — the 1 skill in Node.</p>
+  <span class="lvl int">Intermediate</span>
+</a><a class="pcard" href="nodejs-learning-plan/session-04-fs-streams.html">
+  <span class="pn">04</span>
+  <h3><span aria-hidden="true">🚀</span>Session 4 — File System, Streams &amp; Buffers (2h)</h3>
+  <p>Goal: Read/write files, process large data with streams, and understand Buffers.</p>
+  <span class="lvl int">Intermediate</span>
+</a><a class="pcard" href="nodejs-learning-plan/session-05-events.html">
+  <span class="pn">05</span>
+  <h3><span aria-hidden="true">🛡️</span>Session 5 — Events &amp; the EventEmitter Pattern (2h)</h3>
+  <p>Goal: Use EventEmitter to build decoupled, reactive Node code.</p>
+  <span class="lvl adv">Advanced</span>
+</a><a class="pcard" href="nodejs-learning-plan/session-06-http.html">
+  <span class="pn">06</span>
+  <h3><span aria-hidden="true">📌</span>Session 6 — HTTP Module &amp; Building a Web Server (2h)</h3>
+  <p>Goal: Build a raw HTTP server with the built-in http module — no frameworks yet.</p>
+  <span class="lvl adv">Advanced</span>
+</a><a class="pcard" href="nodejs-learning-plan/session-07-express.html">
+  <span class="pn">07</span>
+  <h3><span aria-hidden="true">📚</span>Session 7 — Express.js: Routing, Middleware, REST APIs (2h)</h3>
+  <p>Goal: Build a clean REST API with Express.</p>
+  <span class="lvl adv">Advanced</span>
+</a><a class="pcard" href="nodejs-learning-plan/session-08-database.html">
+  <span class="pn">08</span>
+  <h3><span aria-hidden="true">💡</span>Session 8 — Databases with MongoDB + Mongoose (2h)</h3>
+  <p>Goal: Persist data from your Express API using MongoDB.</p>
+  <span class="lvl adv">Advanced</span>
+</a><a class="pcard" href="nodejs-learning-plan/session-09-auth-security.html">
+  <span class="pn">09</span>
+  <h3><span aria-hidden="true">🧭</span>Session 9 — Authentication, Security &amp; Error Handling (2h)</h3>
+  <p>Goal: Add JWT auth, password hashing, and core security middleware.</p>
+  <span class="lvl adv">Advanced</span>
+</a><a class="pcard" href="nodejs-learning-plan/session-10-testing-deploy.html">
+  <span class="pn">10</span>
+  <h3><span aria-hidden="true">🌱</span>Session 10 — Testing, Debugging &amp; Deployment (2h)</h3>
+  <p>Goal: Test your API, debug effectively, and deploy it online.</p>
+  <span class="lvl adv">Advanced</span>
+</a></div><section class="banner">
+  <div class="num">4</div>
+  <div><h2>Cheatsheet</h2><p>Node.js in five minutes — a quick reference you can skim any time.</p></div>
+</section><div class="grid"><a class="pcard" href="nodejs-cheatsheet/nodejs-in-5-minutes.html">
+  <span class="pn">01</span>
+  <h3><span aria-hidden="true">🧪</span>Node.js in 5 Minutes — One-Page Cheatsheet</h3>
+  <p></p>
+  <span class="lvl beg">Beginner</span>
+</a></div>
+<footer>Learn Node.js · From your first console.log to production deployment · Built with a light soft-UI docs theme.</footer>
+</main>
+
+</body>
+</html>

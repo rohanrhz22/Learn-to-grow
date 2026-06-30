@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 7 — Git & GitHub Basics · Learn Node.js</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --page-bg:#eaf2fc; --card-bg:#ffffff; --accent:#1657c4; --accent-bright:#1f6fe0;
+  --accent-soft:#e3edfb; --ink:#16202e; --ink-soft:#44546a; --code-bg:#0b2a52;
+  --code-ink:#d6e4ff; --border:#d6e3f5; --green:#1f9d57; --red:#d6455a; --amber:#c98a12;
+  --shadow:0 8px 24px rgba(22,87,196,.08); --shadow-lg:0 16px 44px rgba(22,87,196,.14);
+  --t-key:#7cc4ff; --t-str:#9ff0c4; --t-num:#ffd479; --t-com:#6f8cb8; --t-fn:#d6a3ff; --t-out:#cdd9ee;
+}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--page-bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  line-height:1.65; font-size:16px; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1040px; margin:0 auto; padding:28px 20px 80px}
+a{color:var(--accent); text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* HERO */
+.hero{
+  position:relative; overflow:hidden; border-radius:24px; color:#fff;
+  background:linear-gradient(135deg,#1f6fe0 0%,#1657c4 55%,#0e3f93 100%);
+  padding:38px 36px; box-shadow:var(--shadow-lg);
+}
+.hero::after{
+  content:""; position:absolute; top:-90px; right:-70px; width:280px; height:280px;
+  border-radius:50%; background:radial-gradient(circle at center,rgba(255,255,255,.30),rgba(255,255,255,0) 70%);
+}
+.eyebrow{
+  display:inline-block; text-transform:uppercase; letter-spacing:.14em; font-size:12px;
+  font-weight:700; background:rgba(255,255,255,.16); padding:6px 12px; border-radius:999px;
+  margin-bottom:14px;
+}
+.hero h1{margin:.1em 0 .25em; font-size:clamp(28px,5vw,46px); font-weight:800; line-height:1.1; letter-spacing:-.01em}
+.hero .lead{margin:0; max-width:62ch; font-size:clamp(15px,2.2vw,19px); color:#eaf2ffe6}
+.chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:18px}
+.chip{
+  background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.28);
+  color:#fff; padding:6px 13px; border-radius:999px; font-size:13.5px; font-weight:600;
+}
+
+/* SECTION BANNER */
+.banner{
+  display:flex; align-items:center; gap:16px; margin:34px 0 18px; padding:16px 18px;
+  border-radius:16px; background:linear-gradient(135deg,var(--accent-soft),#f3f8ff);
+  border:1px solid var(--border);
+}
+.num{
+  flex:0 0 auto; width:46px; height:46px; border-radius:13px; display:grid; place-items:center;
+  font-weight:800; font-size:19px; color:#fff;
+  background:linear-gradient(135deg,#1f6fe0,#1657c4); box-shadow:var(--shadow);
+}
+.banner h2{margin:0; font-size:21px; font-weight:800; letter-spacing:-.01em}
+.banner p{margin:2px 0 0; color:var(--ink-soft); font-size:14px}
+
+/* GRID + PCARDS */
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:18px}
+.pcard{
+  display:block; background:var(--card-bg); border:1px solid var(--border); border-radius:18px;
+  padding:20px 20px 18px; box-shadow:var(--shadow); color:inherit;
+  transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.pcard:hover{transform:translateY(-3px); box-shadow:var(--shadow-lg); border-color:#b9d0f2; text-decoration:none}
+.pn{
+  display:inline-grid; place-items:center; width:34px; height:34px; border-radius:10px;
+  background:var(--accent-soft); color:var(--accent); font-weight:800; font-size:14px; margin-bottom:12px;
+}
+.pcard h3{margin:0 0 6px; font-size:17.5px; font-weight:750; display:flex; align-items:center; gap:8px}
+.pcard p{margin:0 0 14px; color:var(--ink-soft); font-size:14px; min-height:38px}
+.lvl{
+  display:inline-block; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:999px;
+  text-transform:uppercase; letter-spacing:.05em;
+}
+.lvl.beg{background:#e3f6ec; color:var(--green)}
+.lvl.int{background:#fef3da; color:var(--amber)}
+.lvl.adv{background:#fbe4e8; color:var(--red)}
+
+/* CRUMBS */
+.crumbs{margin:22px 0 8px; font-size:13.5px; color:var(--ink-soft)}
+.crumbs a{font-weight:600}
+.crumbs span{margin:0 8px; opacity:.6}
+
+/* CARD (lesson content) */
+.card{
+  background:var(--card-bg); border:1px solid var(--border); border-radius:18px;
+  padding:24px 26px; box-shadow:var(--shadow); margin:18px 0;
+}
+.card>h3:first-child,.card>h4:first-child{margin-top:0}
+.card h3{font-size:20px; font-weight:780; letter-spacing:-.01em; margin:.2em 0 .5em; display:flex; align-items:center; flex-wrap:wrap; gap:10px}
+.card h4{font-size:16.5px; font-weight:750; margin:1.1em 0 .4em}
+.card h5{font-size:15px; font-weight:700; margin:1em 0 .3em; color:var(--ink-soft)}
+.tag{
+  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+  background:var(--accent-soft); color:var(--accent); padding:4px 10px; border-radius:999px;
+}
+.card p{margin:.6em 0}
+.card ul,.card ol{margin:.5em 0; padding-left:1.4em}
+.card li{margin:.3em 0}
+.card li::marker{color:var(--accent); font-weight:700}
+.card code{
+  background:#eef4fe; color:#0e3f93; padding:1px 6px; border-radius:6px; font-size:.92em;
+  font-family:"SF Mono","Fira Code","Cascadia Code",Consolas,monospace;
+}
+hr{border:none; border-top:1px solid var(--border); margin:1.4em 0}
+
+/* CALLOUTS */
+.callout{
+  display:flex; gap:12px; align-items:flex-start; border-radius:14px; padding:14px 16px;
+  margin:14px 0; border:1px solid var(--border); font-size:14.5px;
+}
+.callout .ico{font-size:18px; line-height:1.4}
+.callout.note{background:#eef4fe; border-color:#cfe0fa}
+.callout.tip{background:#e9f8ef; border-color:#c7ebd6}
+.callout.warn{background:#fdeef0; border-color:#f6cdd5}
+.callout code{background:rgba(255,255,255,.7)}
+
+/* CODE */
+pre{
+  position:relative; background:var(--code-bg); color:var(--code-ink); border-radius:14px;
+  padding:18px 18px 16px; overflow:auto; margin:14px 0; box-shadow:var(--shadow);
+  font-family:"SF Mono","Fira Code","Cascadia Code",Consolas,monospace; font-size:13.5px; line-height:1.6;
+}
+pre code{font-family:inherit; background:none; color:inherit; padding:0; white-space:pre}
+.lang-chip{
+  position:absolute; top:10px; right:12px; font-size:10.5px; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; color:#9fc0ee; background:rgba(255,255,255,.07);
+  padding:3px 8px; border-radius:7px; pointer-events:none;
+}
+.t-key{color:var(--t-key)} .t-str{color:var(--t-str)} .t-num{color:var(--t-num)}
+.t-com{color:var(--t-com); font-style:italic} .t-fn{color:var(--t-fn)} .t-out{color:var(--t-out)}
+
+/* TABLE */
+.tablewrap{overflow-x:auto; margin:14px 0}
+table{border-collapse:collapse; width:100%; font-size:14px}
+th,td{border:1px solid var(--border); padding:9px 12px; text-align:left; vertical-align:top}
+th{background:var(--accent-soft); font-weight:700; color:var(--accent)}
+tbody tr:nth-child(even){background:#f6faff}
+
+/* DIAGRAM */
+.diagram{margin:16px 0; text-align:center}
+.diagram svg{max-width:100%; height:auto}
+.cap{font-size:13px; color:var(--ink-soft); margin-top:6px; text-align:center}
+
+/* SUMMARY checklist */
+.learned{list-style:none; padding-left:0}
+.learned li{position:relative; padding-left:28px; margin:.4em 0}
+.learned li::before{content:"✓"; position:absolute; left:0; top:0; color:var(--green); font-weight:800}
+
+/* PAGER */
+.pager{display:flex; justify-content:space-between; gap:14px; margin-top:30px}
+.pager a{
+  flex:1; background:var(--card-bg); border:1px solid var(--border); border-radius:14px;
+  padding:14px 18px; box-shadow:var(--shadow); font-weight:650;
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.pager a:hover{transform:translateY(-2px); box-shadow:var(--shadow-lg); text-decoration:none}
+.pager a.next{text-align:right}
+.pager a small{display:block; font-size:11.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-soft); font-weight:700}
+.pager a.disabled{opacity:.4; pointer-events:none}
+
+/* FOOTER */
+footer{margin-top:40px; padding-top:20px; border-top:1px solid var(--border); color:var(--ink-soft); font-size:13.5px; text-align:center}
+
+@media (max-width:760px){
+  .wrap{padding:18px 14px 60px}
+  .hero{padding:28px 22px; border-radius:20px}
+  .card{padding:20px 18px}
+  .grid{grid-template-columns:1fr}
+  .pager{flex-direction:column}
+  .pager a.next{text-align:left}
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="hero">
+  <span class="eyebrow">Beginner Basics</span>
+  <h1>Lesson 7 — Git &amp; GitHub Basics</h1>
+  
+  <div class="chips"><span class="chip">Time: 45 min</span><span class="chip">Goal: Track your code with Git, push it to GitHub, and never lose work again. Every session in the main plan ends with "commit your code" — this is how.</span></div>
+</header>
+<nav class="crumbs" aria-label="Breadcrumb">
+  <a href="../index.html">Learn Node.js</a><span>/</span>
+  <a href="index.html">Beginner Basics</a><span>/</span>Lesson 7 — Git &amp; GitHub Basics
+</nav>
+<section class="card"><hr></section>
+<section class="card"><h3>1. What &amp; why <span class="tag">Why it matters</span></h3><ul><li><strong>Git</strong> = a tool on your computer that records snapshots of your code over time.</li><li><strong>GitHub</strong> = a website that stores your Git repos online so you can back them up and share them.</li></ul><p>Together they give you:</p><ul><li>A full history (undo any change, any time)</li><li>A backup (your laptop dies → your code is safe)</li><li>A portfolio (recruiters look at your GitHub)</li></ul></section>
+<section class="card"><h3>2. One-time install &amp; setup (10 min) <span class="tag">Tooling</span></h3><ol><li>Install Git: https://git-scm.com/downloads → next, next, install.</li><li>Verify in a new terminal:</li></ol><pre><code data-lang="bash">   git --version</code></pre><ol><li>Tell Git who you are (once, ever):</li></ol><pre><code data-lang="bash">   git config --global user.name  "Your Name"
+   git config --global user.email "you@example.com"</code></pre><ol><li>Create a GitHub account: https://github.com (free).</li></ol></section>
+<section class="card"><h3>3. The 6 commands that cover 95% of Git work <span class="tag">Concept</span></h3><p>Run these inside your <code>node-learning/</code> folder.</p><pre><code data-lang="bash"># 1. Start tracking this folder with Git (one time per project)
+git init
+
+# 2. See what changed
+git status
+
+# 3. Stage files (mark them as "ready to save")
+git add .                    # all changes
+git add hello.js             # just one file
+
+# 4. Save a snapshot with a message
+git commit -m "Add hello script"
+
+# 5. See your history
+git log --oneline
+
+# 6. Push to GitHub (after you connect a remote — step 5 below)
+git push</code></pre><p>That's it. <code>status → add → commit</code> is the loop you'll run dozens of times.</p></section>
+<section class="card"><h3>4. The <code>.gitignore</code> file (super important) <span class="tag">Concept</span></h3><p>You do <strong>NOT</strong> want to commit <code>node_modules/</code> — it's huge and recreatable.</p><p>In your project root, create a file named <code>.gitignore</code>:</p><pre><code data-lang="text">node_modules/
+.env
+*.log
+.DS_Store</code></pre><p>Now <code>git status</code> won't even mention those files. Commit <code>.gitignore</code> itself.</p><div class="callout note"><span class="ico" aria-hidden="true">📌</span><div><strong>Rule:</strong> if a file can be regenerated (<code>node_modules</code>) or contains secrets (<code>.env</code>), it goes in <code>.gitignore</code>.</div></div></section>
+<section class="card"><h3>5. Push your project to GitHub (15 min) <span class="tag">Hands-on</span></h3><ol><li>On https://github.com click <strong>+ → New repository</strong>.</li><li>Name it <code>node-learning</code>. Leave it <strong>empty</strong> (no README, no .gitignore).</li><li>Click <strong>Create</strong>. GitHub shows you commands. Copy the <strong>"…or push an existing repository"</strong> block. It looks like:</li></ol><pre><code data-lang="bash">   git remote add origin https://github.com/&lt;your-user&gt;/node-learning.git
+   git branch -M main
+   git push -u origin main</code></pre><ol><li>Run those three commands in your terminal (inside <code>node-learning/</code>).</li><li>Refresh the GitHub page — your code is online.</li></ol><p>From now on, after every session:</p><pre><code data-lang="bash">git add .
+git commit -m "Session 3: async/await complete"
+git push</code></pre></section>
+<section class="card"><h3>6. The mental model — three "areas" <span class="tag">Concept</span></h3><pre><code data-lang="text">   working dir          staging area           repo (commits)
+   ────────────         ────────────           ─────────────
+   you edit files  →    git add  →  git commit  →   history
+                                              git push  →  GitHub</code></pre><ul><li><strong>Edit</strong> files freely.</li><li><code>git add</code> says "include this in the next snapshot."</li><li><code>git commit</code> saves the snapshot locally.</li><li><code>git push</code> uploads commits to GitHub.</li></ul></section>
+<section class="card"><h3>7. Two lifesaver commands <span class="tag">Concept</span></h3><pre><code data-lang="bash"># Undo changes in a file you haven't staged yet (BE SURE first)
+git restore hello.js
+
+# See exactly what changed in a file
+git diff hello.js</code></pre></section>
+<section class="card"><h3>8. Mini exercise (10 min) <span class="tag">Hands-on</span></h3><ol><li>In <code>node-learning/</code>, run <code>git init</code>.</li><li>Create <code>.gitignore</code> with <code>node_modules/</code>.</li><li>Make a tiny file <code>notes.md</code> with one line.</li><li>Run:</li></ol><pre><code data-lang="bash">   git status
+   git add .
+   git commit -m "Initial commit"
+   git log --oneline</code></pre><ol><li>Create a GitHub repo and push.</li><li>Edit <code>notes.md</code>, add another line, then commit &amp; push again.</li><li>Refresh GitHub — see both commits in the history.</li></ol><hr></section>
+<section class="card"><h3>5-min recap <span class="tag">Summary</span></h3><ol><li>Difference between Git and GitHub?</li><li>What's the <code>status → add → commit</code> loop?</li><li>Why does <code>node_modules/</code> belong in <code>.gitignore</code>?</li><li>What command uploads your commits to GitHub?</li></ol><hr></section>
+<section class="card"><h3>🎯 You're truly ready now <span class="tag">Concept</span></h3><p>You can read &amp; write JS, run Node scripts, install packages, debug errors, work with JSON, and version-control your code. That's a complete beginner foundation.</p><p>➡️ <strong>Go to <a href="../session-01-fundamentals.html">../session-01-fundamentals.md</a></strong> and start the main 20-hour plan with confidence.</p></section>
+<nav class="pager" aria-label="Lesson navigation"><a class="prev" href="06-json-and-data.html"><small>Previous</small>Lesson 6 — JSON &amp; Working with Data</a><a class="next disabled" aria-disabled="true"><small>Next</small>End of track</a></nav>
+<footer>Learn Node.js · Beginner Basics · Part 8 of 8 · Built with a light soft-UI docs theme.</footer>
+</main>
+<script>
+(function(){
+  var BT = String.fromCharCode(96);
+  var KW = {
+    js: new Set(("const let var function return if else for while do switch case break continue "+
+      "new class extends super this typeof instanceof in of try catch finally throw async await "+
+      "yield import export default from as void delete null undefined true false NaN Infinity "+
+      "static get set require module exports process console global __dirname __filename "+
+      "Promise Array Object String Number Boolean Map Set JSON Math Date Symbol Buffer setTimeout "+
+      "setInterval setImmediate fetch").split(" ")),
+    bash: new Set(("npm npx node nvm cd ls mkdir rm rmdir git curl wget echo export cat touch pwd "+
+      "sudo code set chmod mv cp grep find which clear pnpm yarn docker").split(" ")),
+    json: new Set("true false null".split(" ")),
+    text: new Set([])
+  };
+  function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+  function isIdStart(c){return /[A-Za-z_$]/.test(c);}
+  function isId(c){return /[A-Za-z0-9_$]/.test(c);}
+  function highlight(code, lang){
+    if(lang==="text"){return '<span class="t-out">'+esc(code)+'</span>';}
+    var lineComment = (lang==="bash") ? "#" : "//";
+    var kw = KW[lang] || KW.text;
+    var out=""; var i=0; var n=code.length;
+    while(i<n){
+      var c=code[i];
+      if(lineComment && code.substr(i,lineComment.length)===lineComment){
+        var j=code.indexOf("\n",i); if(j<0)j=n;
+        out+='<span class="t-com">'+esc(code.slice(i,j))+'</span>'; i=j; continue;
+      }
+      if(lang==="js" && c==="/" && code[i+1]==="*"){
+        var e=code.indexOf("*/",i+2); e=(e<0)?n:e+2;
+        out+='<span class="t-com">'+esc(code.slice(i,e))+'</span>'; i=e; continue;
+      }
+      if(c==='"' || c==="'" || c===BT){
+        var k=i+1; while(k<n && code[k]!==c){ if(code[k]==="\\")k++; k++; } k++;
+        if(k>n)k=n;
+        out+='<span class="t-str">'+esc(code.slice(i,k))+'</span>'; i=k; continue;
+      }
+      if(/[0-9]/.test(c)){
+        var p=i; while(p<n && /[0-9._xXa-fA-F]/.test(code[p]))p++;
+        out+='<span class="t-num">'+esc(code.slice(i,p))+'</span>'; i=p; continue;
+      }
+      if(isIdStart(c)){
+        var q=i; while(q<n && isId(code[q]))q++;
+        var word=code.slice(i,q);
+        var r=q; while(r<n && code[r]===" ")r++;
+        if(kw.has(word)){ out+='<span class="t-key">'+esc(word)+'</span>'; }
+        else if(code[r]==="("){ out+='<span class="t-fn">'+esc(word)+'</span>'; }
+        else { out+=esc(word); }
+        i=q; continue;
+      }
+      out+=esc(c); i++;
+    }
+    return out;
+  }
+  var labels={js:"JS",bash:"BASH",json:"JSON",text:"TEXT"};
+  var blocks=document.querySelectorAll("pre > code[data-lang]");
+  for(var b=0;b<blocks.length;b++){
+    var el=blocks[b];
+    var lang=el.getAttribute("data-lang")||"text";
+    el.innerHTML=highlight(el.textContent, lang);
+    var chip=document.createElement("span");
+    chip.className="lang-chip";
+    chip.textContent=labels[lang]||lang.toUpperCase();
+    el.parentNode.appendChild(chip);
+  }
+})();
+</script>
+</body>
+</html>

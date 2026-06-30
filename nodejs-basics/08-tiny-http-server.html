@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 8 — Tiny HTTP Server From Scratch (No Express Yet) · Learn Node.js</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --page-bg:#eaf2fc; --card-bg:#ffffff; --accent:#1657c4; --accent-bright:#1f6fe0;
+  --accent-soft:#e3edfb; --ink:#16202e; --ink-soft:#44546a; --code-bg:#0b2a52;
+  --code-ink:#d6e4ff; --border:#d6e3f5; --green:#1f9d57; --red:#d6455a; --amber:#c98a12;
+  --shadow:0 8px 24px rgba(22,87,196,.08); --shadow-lg:0 16px 44px rgba(22,87,196,.14);
+  --t-key:#7cc4ff; --t-str:#9ff0c4; --t-num:#ffd479; --t-com:#6f8cb8; --t-fn:#d6a3ff; --t-out:#cdd9ee;
+}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--page-bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  line-height:1.65; font-size:16px; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1040px; margin:0 auto; padding:28px 20px 80px}
+a{color:var(--accent); text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* HERO */
+.hero{
+  position:relative; overflow:hidden; border-radius:24px; color:#fff;
+  background:linear-gradient(135deg,#1f6fe0 0%,#1657c4 55%,#0e3f93 100%);
+  padding:38px 36px; box-shadow:var(--shadow-lg);
+}
+.hero::after{
+  content:""; position:absolute; top:-90px; right:-70px; width:280px; height:280px;
+  border-radius:50%; background:radial-gradient(circle at center,rgba(255,255,255,.30),rgba(255,255,255,0) 70%);
+}
+.eyebrow{
+  display:inline-block; text-transform:uppercase; letter-spacing:.14em; font-size:12px;
+  font-weight:700; background:rgba(255,255,255,.16); padding:6px 12px; border-radius:999px;
+  margin-bottom:14px;
+}
+.hero h1{margin:.1em 0 .25em; font-size:clamp(28px,5vw,46px); font-weight:800; line-height:1.1; letter-spacing:-.01em}
+.hero .lead{margin:0; max-width:62ch; font-size:clamp(15px,2.2vw,19px); color:#eaf2ffe6}
+.chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:18px}
+.chip{
+  background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.28);
+  color:#fff; padding:6px 13px; border-radius:999px; font-size:13.5px; font-weight:600;
+}
+
+/* SECTION BANNER */
+.banner{
+  display:flex; align-items:center; gap:16px; margin:34px 0 18px; padding:16px 18px;
+  border-radius:16px; background:linear-gradient(135deg,var(--accent-soft),#f3f8ff);
+  border:1px solid var(--border);
+}
+.num{
+  flex:0 0 auto; width:46px; height:46px; border-radius:13px; display:grid; place-items:center;
+  font-weight:800; font-size:19px; color:#fff;
+  background:linear-gradient(135deg,#1f6fe0,#1657c4); box-shadow:var(--shadow);
+}
+.banner h2{margin:0; font-size:21px; font-weight:800; letter-spacing:-.01em}
+.banner p{margin:2px 0 0; color:var(--ink-soft); font-size:14px}
+
+/* GRID + PCARDS */
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:18px}
+.pcard{
+  display:block; background:var(--card-bg); border:1px solid var(--border); border-radius:18px;
+  padding:20px 20px 18px; box-shadow:var(--shadow); color:inherit;
+  transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.pcard:hover{transform:translateY(-3px); box-shadow:var(--shadow-lg); border-color:#b9d0f2; text-decoration:none}
+.pn{
+  display:inline-grid; place-items:center; width:34px; height:34px; border-radius:10px;
+  background:var(--accent-soft); color:var(--accent); font-weight:800; font-size:14px; margin-bottom:12px;
+}
+.pcard h3{margin:0 0 6px; font-size:17.5px; font-weight:750; display:flex; align-items:center; gap:8px}
+.pcard p{margin:0 0 14px; color:var(--ink-soft); font-size:14px; min-height:38px}
+.lvl{
+  display:inline-block; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:999px;
+  text-transform:uppercase; letter-spacing:.05em;
+}
+.lvl.beg{background:#e3f6ec; color:var(--green)}
+.lvl.int{background:#fef3da; color:var(--amber)}
+.lvl.adv{background:#fbe4e8; color:var(--red)}
+
+/* CRUMBS */
+.crumbs{margin:22px 0 8px; font-size:13.5px; color:var(--ink-soft)}
+.crumbs a{font-weight:600}
+.crumbs span{margin:0 8px; opacity:.6}
+
+/* CARD (lesson content) */
+.card{
+  background:var(--card-bg); border:1px solid var(--border); border-radius:18px;
+  padding:24px 26px; box-shadow:var(--shadow); margin:18px 0;
+}
+.card>h3:first-child,.card>h4:first-child{margin-top:0}
+.card h3{font-size:20px; font-weight:780; letter-spacing:-.01em; margin:.2em 0 .5em; display:flex; align-items:center; flex-wrap:wrap; gap:10px}
+.card h4{font-size:16.5px; font-weight:750; margin:1.1em 0 .4em}
+.card h5{font-size:15px; font-weight:700; margin:1em 0 .3em; color:var(--ink-soft)}
+.tag{
+  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+  background:var(--accent-soft); color:var(--accent); padding:4px 10px; border-radius:999px;
+}
+.card p{margin:.6em 0}
+.card ul,.card ol{margin:.5em 0; padding-left:1.4em}
+.card li{margin:.3em 0}
+.card li::marker{color:var(--accent); font-weight:700}
+.card code{
+  background:#eef4fe; color:#0e3f93; padding:1px 6px; border-radius:6px; font-size:.92em;
+  font-family:"SF Mono","Fira Code","Cascadia Code",Consolas,monospace;
+}
+hr{border:none; border-top:1px solid var(--border); margin:1.4em 0}
+
+/* CALLOUTS */
+.callout{
+  display:flex; gap:12px; align-items:flex-start; border-radius:14px; padding:14px 16px;
+  margin:14px 0; border:1px solid var(--border); font-size:14.5px;
+}
+.callout .ico{font-size:18px; line-height:1.4}
+.callout.note{background:#eef4fe; border-color:#cfe0fa}
+.callout.tip{background:#e9f8ef; border-color:#c7ebd6}
+.callout.warn{background:#fdeef0; border-color:#f6cdd5}
+.callout code{background:rgba(255,255,255,.7)}
+
+/* CODE */
+pre{
+  position:relative; background:var(--code-bg); color:var(--code-ink); border-radius:14px;
+  padding:18px 18px 16px; overflow:auto; margin:14px 0; box-shadow:var(--shadow);
+  font-family:"SF Mono","Fira Code","Cascadia Code",Consolas,monospace; font-size:13.5px; line-height:1.6;
+}
+pre code{font-family:inherit; background:none; color:inherit; padding:0; white-space:pre}
+.lang-chip{
+  position:absolute; top:10px; right:12px; font-size:10.5px; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; color:#9fc0ee; background:rgba(255,255,255,.07);
+  padding:3px 8px; border-radius:7px; pointer-events:none;
+}
+.t-key{color:var(--t-key)} .t-str{color:var(--t-str)} .t-num{color:var(--t-num)}
+.t-com{color:var(--t-com); font-style:italic} .t-fn{color:var(--t-fn)} .t-out{color:var(--t-out)}
+
+/* TABLE */
+.tablewrap{overflow-x:auto; margin:14px 0}
+table{border-collapse:collapse; width:100%; font-size:14px}
+th,td{border:1px solid var(--border); padding:9px 12px; text-align:left; vertical-align:top}
+th{background:var(--accent-soft); font-weight:700; color:var(--accent)}
+tbody tr:nth-child(even){background:#f6faff}
+
+/* DIAGRAM */
+.diagram{margin:16px 0; text-align:center}
+.diagram svg{max-width:100%; height:auto}
+.cap{font-size:13px; color:var(--ink-soft); margin-top:6px; text-align:center}
+
+/* SUMMARY checklist */
+.learned{list-style:none; padding-left:0}
+.learned li{position:relative; padding-left:28px; margin:.4em 0}
+.learned li::before{content:"✓"; position:absolute; left:0; top:0; color:var(--green); font-weight:800}
+
+/* PAGER */
+.pager{display:flex; justify-content:space-between; gap:14px; margin-top:30px}
+.pager a{
+  flex:1; background:var(--card-bg); border:1px solid var(--border); border-radius:14px;
+  padding:14px 18px; box-shadow:var(--shadow); font-weight:650;
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.pager a:hover{transform:translateY(-2px); box-shadow:var(--shadow-lg); text-decoration:none}
+.pager a.next{text-align:right}
+.pager a small{display:block; font-size:11.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-soft); font-weight:700}
+.pager a.disabled{opacity:.4; pointer-events:none}
+
+/* FOOTER */
+footer{margin-top:40px; padding-top:20px; border-top:1px solid var(--border); color:var(--ink-soft); font-size:13.5px; text-align:center}
+
+@media (max-width:760px){
+  .wrap{padding:18px 14px 60px}
+  .hero{padding:28px 22px; border-radius:20px}
+  .card{padding:20px 18px}
+  .grid{grid-template-columns:1fr}
+  .pager{flex-direction:column}
+  .pager a.next{text-align:left}
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="hero">
+  <span class="eyebrow">Node.js Core</span>
+  <h1>Lesson 8 — Tiny HTTP Server From Scratch (No Express Yet)</h1>
+  
+  <div class="chips"><span class="chip">Time: 60 min</span><span class="chip">Goal: Build a real HTTP server using only Node's built-in <code>http</code> module — so you understand what Express is doing for you later.</span></div>
+</header>
+<nav class="crumbs" aria-label="Breadcrumb">
+  <a href="../index.html">Learn Node.js</a><span>/</span>
+  <a href="index.html">Node.js Core</a><span>/</span>Lesson 8 — Tiny HTTP Server From Scratch (No Express Yet)
+</nav>
+<section class="card"><hr></section>
+<section class="card"><h3>1. What is an HTTP server, really? (5 min) <span class="tag">Concept</span></h3><p>An HTTP server is a program that:</p><ol><li>Listens on a <strong>port</strong> (e.g., 3000).</li><li>Waits for incoming <strong>requests</strong> from clients (browsers, <code>curl</code>, mobile apps).</li><li>Reads the request: method (<code>GET</code>/<code>POST</code>/...), URL, headers, body.</li><li>Sends back a <strong>response</strong>: status code (200, 404, 500...), headers, body.</li></ol><p>That's it. Express, Fastify, Koa — all of them sit on top of this same idea.</p></section>
+<section class="card"><h3>2. The 6-line server (5 min) <span class="tag">Concept</span></h3><p>Create <code>server.js</code>:</p><pre><code data-lang="js">const http = require("http");
+
+const server = http.createServer((req, res) =&gt; {
+  res.end("Hello from Node!");
+});
+
+server.listen(3000, () =&gt; {
+  console.log("Listening on http://localhost:3000");
+});</code></pre><p>Run: <code>node server.js</code>. Open http://localhost:3000 in your browser. Or in a new terminal:</p><pre><code data-lang="bash">curl http://localhost:3000</code></pre><p>Press <code>Ctrl+C</code> to stop.</p><div class="callout note"><span class="ico" aria-hidden="true">📌</span><div>Notice: <code>createServer</code> takes a handler that receives <code>(req, res)</code> for <em>every</em> request. <code>req</code> is a Readable stream (the request); <code>res</code> is a Writable stream (the response). Lesson 7 wasn't just theory.</div></div></section>
+<section class="card"><h3>3. Reading method and URL (10 min) <span class="tag">Resources</span></h3><pre><code data-lang="js">const http = require("http");
+
+const server = http.createServer((req, res) =&gt; {
+  console.log(req.method, req.url);
+
+  if (req.method === "GET" &amp;&amp; req.url === "/") {
+    res.setHeader("Content-Type", "text/html");
+    res.end("&lt;h1&gt;Home&lt;/h1&gt;");
+    return;
+  }
+
+  if (req.method === "GET" &amp;&amp; req.url === "/about") {
+    res.end("About page");
+    return;
+  }
+
+  res.statusCode = 404;
+  res.end("Not Found");
+});
+
+server.listen(3000, () =&gt; console.log("http://localhost:3000"));</code></pre><p>Visit <code>/</code>, <code>/about</code>, <code>/nope</code> and watch the terminal log each request.</p><p><strong>That's "routing"</strong> — matching the request method + URL to a handler. Express makes this prettier; nothing more.</p></section>
+<section class="card"><h3>4. Sending JSON (10 min) <span class="tag">Concept</span></h3><p>Most modern servers speak JSON, not HTML.</p><pre><code data-lang="js">const http = require("http");
+
+const users = [
+  { id: 1, name: "Asha" },
+  { id: 2, name: "Ravi" },
+];
+
+const server = http.createServer((req, res) =&gt; {
+  if (req.method === "GET" &amp;&amp; req.url === "/api/users") {
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify(users));
+    return;
+  }
+
+  res.statusCode = 404;
+  res.setHeader("Content-Type", "application/json");
+  res.end(JSON.stringify({ error: "Not Found" }));
+});
+
+server.listen(3000, () =&gt; console.log("http://localhost:3000"));</code></pre><p>Test:</p><pre><code data-lang="bash">curl http://localhost:3000/api/users</code></pre><p>You should see the JSON array.</p></section>
+<section class="card"><h3>5. Reading a request body (POST) (15 min) <span class="tag">Resources</span></h3><p><code>req</code> is a <strong>stream</strong> — the body arrives in chunks. You collect them, then parse.</p><pre><code data-lang="js">const http = require("http");
+
+const users = [];
+
+const server = http.createServer((req, res) =&gt; {
+  // GET /api/users — list
+  if (req.method === "GET" &amp;&amp; req.url === "/api/users") {
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify(users));
+    return;
+  }
+
+  // POST /api/users — create
+  if (req.method === "POST" &amp;&amp; req.url === "/api/users") {
+    let raw = "";
+    req.on("data", (chunk) =&gt; { raw += chunk; });
+    req.on("end", () =&gt; {
+      try {
+        const body = JSON.parse(raw);
+        const user = { id: users.length + 1, name: body.name };
+        users.push(user);
+        res.statusCode = 201;
+        res.setHeader("Content-Type", "application/json");
+        res.end(JSON.stringify(user));
+      } catch {
+        res.statusCode = 400;
+        res.end(JSON.stringify({ error: "Invalid JSON" }));
+      }
+    });
+    return;
+  }
+
+  res.statusCode = 404;
+  res.end(JSON.stringify({ error: "Not Found" }));
+});
+
+server.listen(3000, () =&gt; console.log("http://localhost:3000"));</code></pre><p>Test:</p><pre><code data-lang="bash"># Add a user
+curl -X POST http://localhost:3000/api/users `
+  -H "Content-Type: application/json" `
+  -d '{"name":"Sandya"}'
+
+# List them
+curl http://localhost:3000/api/users</code></pre><p><strong>This is what Express's <code>app.use(express.json())</code> does for you in one line.</strong> Worth doing once by hand.</p></section>
+<section class="card"><h3>6. Status codes you should know (5 min) <span class="tag">Concept</span></h3><div class="tablewrap"><table><thead><tr><th>Code</th><th>Meaning</th><th>Use when</th></tr></thead><tbody><tr><td>200</td><td>OK</td><td>Success on GET / generic success</td></tr><tr><td>201</td><td>Created</td><td>Success on POST that creates something</td></tr><tr><td>204</td><td>No Content</td><td>Success but no body (e.g., DELETE)</td></tr><tr><td>400</td><td>Bad Request</td><td>Client sent invalid data</td></tr><tr><td>401</td><td>Unauthorized</td><td>Not logged in</td></tr><tr><td>403</td><td>Forbidden</td><td>Logged in, but not allowed</td></tr><tr><td>404</td><td>Not Found</td><td>URL or resource doesn't exist</td></tr><tr><td>409</td><td>Conflict</td><td>E.g., email already registered</td></tr><tr><td>500</td><td>Server Error</td><td>Your code crashed</td></tr></tbody></table></div><p>Memorize these. You'll use them every day.</p></section>
+<section class="card"><h3>7. Auto-restart while you develop (5 min) <span class="tag">Concept</span></h3><p>Tired of pressing Ctrl+C and <code>node server.js</code> after every edit?</p><pre><code data-lang="bash">npm init -y
+npm install -D nodemon</code></pre><p>Add to <code>package.json</code>:</p><pre><code data-lang="json">"scripts": { "dev": "nodemon server.js" }</code></pre><p>Run:</p><pre><code data-lang="bash">npm run dev</code></pre><p>Save the file → server restarts itself. You'll use this for every server you write from here on.</p></section>
+<section class="card"><h3>8. Mini project — books API (10 min) <span class="tag">Hands-on</span></h3><p>Extend section 5 into a tiny CRUD:</p><ul><li><code>GET    /api/books</code>     → list all</li><li><code>GET    /api/books/:id</code> → get one (hint: parse the id from <code>req.url</code>)</li><li><code>POST   /api/books</code>     → create</li><li><code>DELETE /api/books/:id</code> → remove</li></ul><p>Start with an in-memory array. Use JSON throughout.</p><p>When you finish — note how much code you wrote vs how much Express will replace later. <strong>That contrast is why Express exists.</strong></p><hr></section>
+<section class="card"><h3>5-min recap <span class="tag">Summary</span></h3><ol><li>What two things does <code>http.createServer((req, res) =&gt; {...})</code> give you?</li><li>Why must you collect <code>req</code> in chunks for POST bodies?</li><li>What status code do you return after a successful create?</li><li>What does <code>nodemon</code> do?</li></ol><hr></section>
+<section class="card"><h3>🎓 You finished the Node.js Basics deep dive! <span class="tag">Concept</span></h3><p>You now understand: runtime, event loop, globals, modules, npm, built-in modules, async, events, streams, and HTTP — the entire <strong>mental model</strong> of Node.js.</p><p>➡️ <strong>Go to <a href="../session-01-fundamentals.html">../session-01-fundamentals.md</a></strong> and start the main 20-hour plan. The first sessions will feel familiar — that's the whole point. You'll move faster and absorb more.</p><p>Good luck, and have fun building.</p></section>
+<nav class="pager" aria-label="Lesson navigation"><a class="prev" href="07-events-and-streams.html"><small>Previous</small>Lesson 7 — EventEmitter &amp; Streams (the Node "feel")</a><a class="next disabled" aria-disabled="true"><small>Next</small>End of track</a></nav>
+<footer>Learn Node.js · Node.js Core · Part 8 of 8 · Built with a light soft-UI docs theme.</footer>
+</main>
+<script>
+(function(){
+  var BT = String.fromCharCode(96);
+  var KW = {
+    js: new Set(("const let var function return if else for while do switch case break continue "+
+      "new class extends super this typeof instanceof in of try catch finally throw async await "+
+      "yield import export default from as void delete null undefined true false NaN Infinity "+
+      "static get set require module exports process console global __dirname __filename "+
+      "Promise Array Object String Number Boolean Map Set JSON Math Date Symbol Buffer setTimeout "+
+      "setInterval setImmediate fetch").split(" ")),
+    bash: new Set(("npm npx node nvm cd ls mkdir rm rmdir git curl wget echo export cat touch pwd "+
+      "sudo code set chmod mv cp grep find which clear pnpm yarn docker").split(" ")),
+    json: new Set("true false null".split(" ")),
+    text: new Set([])
+  };
+  function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+  function isIdStart(c){return /[A-Za-z_$]/.test(c);}
+  function isId(c){return /[A-Za-z0-9_$]/.test(c);}
+  function highlight(code, lang){
+    if(lang==="text"){return '<span class="t-out">'+esc(code)+'</span>';}
+    var lineComment = (lang==="bash") ? "#" : "//";
+    var kw = KW[lang] || KW.text;
+    var out=""; var i=0; var n=code.length;
+    while(i<n){
+      var c=code[i];
+      if(lineComment && code.substr(i,lineComment.length)===lineComment){
+        var j=code.indexOf("\n",i); if(j<0)j=n;
+        out+='<span class="t-com">'+esc(code.slice(i,j))+'</span>'; i=j; continue;
+      }
+      if(lang==="js" && c==="/" && code[i+1]==="*"){
+        var e=code.indexOf("*/",i+2); e=(e<0)?n:e+2;
+        out+='<span class="t-com">'+esc(code.slice(i,e))+'</span>'; i=e; continue;
+      }
+      if(c==='"' || c==="'" || c===BT){
+        var k=i+1; while(k<n && code[k]!==c){ if(code[k]==="\\")k++; k++; } k++;
+        if(k>n)k=n;
+        out+='<span class="t-str">'+esc(code.slice(i,k))+'</span>'; i=k; continue;
+      }
+      if(/[0-9]/.test(c)){
+        var p=i; while(p<n && /[0-9._xXa-fA-F]/.test(code[p]))p++;
+        out+='<span class="t-num">'+esc(code.slice(i,p))+'</span>'; i=p; continue;
+      }
+      if(isIdStart(c)){
+        var q=i; while(q<n && isId(code[q]))q++;
+        var word=code.slice(i,q);
+        var r=q; while(r<n && code[r]===" ")r++;
+        if(kw.has(word)){ out+='<span class="t-key">'+esc(word)+'</span>'; }
+        else if(code[r]==="("){ out+='<span class="t-fn">'+esc(word)+'</span>'; }
+        else { out+=esc(word); }
+        i=q; continue;
+      }
+      out+=esc(c); i++;
+    }
+    return out;
+  }
+  var labels={js:"JS",bash:"BASH",json:"JSON",text:"TEXT"};
+  var blocks=document.querySelectorAll("pre > code[data-lang]");
+  for(var b=0;b<blocks.length;b++){
+    var el=blocks[b];
+    var lang=el.getAttribute("data-lang")||"text";
+    el.innerHTML=highlight(el.textContent, lang);
+    var chip=document.createElement("span");
+    chip.className="lang-chip";
+    chip.textContent=labels[lang]||lang.toUpperCase();
+    el.parentNode.appendChild(chip);
+  }
+})();
+</script>
+</body>
+</html>

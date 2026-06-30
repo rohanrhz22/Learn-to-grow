@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 4 — File System, Streams & Buffers (2h) · Learn Node.js</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --page-bg:#eaf2fc; --card-bg:#ffffff; --accent:#1657c4; --accent-bright:#1f6fe0;
+  --accent-soft:#e3edfb; --ink:#16202e; --ink-soft:#44546a; --code-bg:#0b2a52;
+  --code-ink:#d6e4ff; --border:#d6e3f5; --green:#1f9d57; --red:#d6455a; --amber:#c98a12;
+  --shadow:0 8px 24px rgba(22,87,196,.08); --shadow-lg:0 16px 44px rgba(22,87,196,.14);
+  --t-key:#7cc4ff; --t-str:#9ff0c4; --t-num:#ffd479; --t-com:#6f8cb8; --t-fn:#d6a3ff; --t-out:#cdd9ee;
+}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--page-bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  line-height:1.65; font-size:16px; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1040px; margin:0 auto; padding:28px 20px 80px}
+a{color:var(--accent); text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* HERO */
+.hero{
+  position:relative; overflow:hidden; border-radius:24px; color:#fff;
+  background:linear-gradient(135deg,#1f6fe0 0%,#1657c4 55%,#0e3f93 100%);
+  padding:38px 36px; box-shadow:var(--shadow-lg);
+}
+.hero::after{
+  content:""; position:absolute; top:-90px; right:-70px; width:280px; height:280px;
+  border-radius:50%; background:radial-gradient(circle at center,rgba(255,255,255,.30),rgba(255,255,255,0) 70%);
+}
+.eyebrow{
+  display:inline-block; text-transform:uppercase; letter-spacing:.14em; font-size:12px;
+  font-weight:700; background:rgba(255,255,255,.16); padding:6px 12px; border-radius:999px;
+  margin-bottom:14px;
+}
+.hero h1{margin:.1em 0 .25em; font-size:clamp(28px,5vw,46px); font-weight:800; line-height:1.1; letter-spacing:-.01em}
+.hero .lead{margin:0; max-width:62ch; font-size:clamp(15px,2.2vw,19px); color:#eaf2ffe6}
+.chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:18px}
+.chip{
+  background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.28);
+  color:#fff; padding:6px 13px; border-radius:999px; font-size:13.5px; font-weight:600;
+}
+
+/* SECTION BANNER */
+.banner{
+  display:flex; align-items:center; gap:16px; margin:34px 0 18px; padding:16px 18px;
+  border-radius:16px; background:linear-gradient(135deg,var(--accent-soft),#f3f8ff);
+  border:1px solid var(--border);
+}
+.num{
+  flex:0 0 auto; width:46px; height:46px; border-radius:13px; display:grid; place-items:center;
+  font-weight:800; font-size:19px; color:#fff;
+  background:linear-gradient(135deg,#1f6fe0,#1657c4); box-shadow:var(--shadow);
+}
+.banner h2{margin:0; font-size:21px; font-weight:800; letter-spacing:-.01em}
+.banner p{margin:2px 0 0; color:var(--ink-soft); font-size:14px}
+
+/* GRID + PCARDS */
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:18px}
+.pcard{
+  display:block; background:var(--card-bg); border:1px solid var(--border); border-radius:18px;
+  padding:20px 20px 18px; box-shadow:var(--shadow); color:inherit;
+  transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.pcard:hover{transform:translateY(-3px); box-shadow:var(--shadow-lg); border-color:#b9d0f2; text-decoration:none}
+.pn{
+  display:inline-grid; place-items:center; width:34px; height:34px; border-radius:10px;
+  background:var(--accent-soft); color:var(--accent); font-weight:800; font-size:14px; margin-bottom:12px;
+}
+.pcard h3{margin:0 0 6px; font-size:17.5px; font-weight:750; display:flex; align-items:center; gap:8px}
+.pcard p{margin:0 0 14px; color:var(--ink-soft); font-size:14px; min-height:38px}
+.lvl{
+  display:inline-block; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:999px;
+  text-transform:uppercase; letter-spacing:.05em;
+}
+.lvl.beg{background:#e3f6ec; color:var(--green)}
+.lvl.int{background:#fef3da; color:var(--amber)}
+.lvl.adv{background:#fbe4e8; color:var(--red)}
+
+/* CRUMBS */
+.crumbs{margin:22px 0 8px; font-size:13.5px; color:var(--ink-soft)}
+.crumbs a{font-weight:600}
+.crumbs span{margin:0 8px; opacity:.6}
+
+/* CARD (lesson content) */
+.card{
+  background:var(--card-bg); border:1px solid var(--border); border-radius:18px;
+  padding:24px 26px; box-shadow:var(--shadow); margin:18px 0;
+}
+.card>h3:first-child,.card>h4:first-child{margin-top:0}
+.card h3{font-size:20px; font-weight:780; letter-spacing:-.01em; margin:.2em 0 .5em; display:flex; align-items:center; flex-wrap:wrap; gap:10px}
+.card h4{font-size:16.5px; font-weight:750; margin:1.1em 0 .4em}
+.card h5{font-size:15px; font-weight:700; margin:1em 0 .3em; color:var(--ink-soft)}
+.tag{
+  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+  background:var(--accent-soft); color:var(--accent); padding:4px 10px; border-radius:999px;
+}
+.card p{margin:.6em 0}
+.card ul,.card ol{margin:.5em 0; padding-left:1.4em}
+.card li{margin:.3em 0}
+.card li::marker{color:var(--accent); font-weight:700}
+.card code{
+  background:#eef4fe; color:#0e3f93; padding:1px 6px; border-radius:6px; font-size:.92em;
+  font-family:"SF Mono","Fira Code","Cascadia Code",Consolas,monospace;
+}
+hr{border:none; border-top:1px solid var(--border); margin:1.4em 0}
+
+/* CALLOUTS */
+.callout{
+  display:flex; gap:12px; align-items:flex-start; border-radius:14px; padding:14px 16px;
+  margin:14px 0; border:1px solid var(--border); font-size:14.5px;
+}
+.callout .ico{font-size:18px; line-height:1.4}
+.callout.note{background:#eef4fe; border-color:#cfe0fa}
+.callout.tip{background:#e9f8ef; border-color:#c7ebd6}
+.callout.warn{background:#fdeef0; border-color:#f6cdd5}
+.callout code{background:rgba(255,255,255,.7)}
+
+/* CODE */
+pre{
+  position:relative; background:var(--code-bg); color:var(--code-ink); border-radius:14px;
+  padding:18px 18px 16px; overflow:auto; margin:14px 0; box-shadow:var(--shadow);
+  font-family:"SF Mono","Fira Code","Cascadia Code",Consolas,monospace; font-size:13.5px; line-height:1.6;
+}
+pre code{font-family:inherit; background:none; color:inherit; padding:0; white-space:pre}
+.lang-chip{
+  position:absolute; top:10px; right:12px; font-size:10.5px; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; color:#9fc0ee; background:rgba(255,255,255,.07);
+  padding:3px 8px; border-radius:7px; pointer-events:none;
+}
+.t-key{color:var(--t-key)} .t-str{color:var(--t-str)} .t-num{color:var(--t-num)}
+.t-com{color:var(--t-com); font-style:italic} .t-fn{color:var(--t-fn)} .t-out{color:var(--t-out)}
+
+/* TABLE */
+.tablewrap{overflow-x:auto; margin:14px 0}
+table{border-collapse:collapse; width:100%; font-size:14px}
+th,td{border:1px solid var(--border); padding:9px 12px; text-align:left; vertical-align:top}
+th{background:var(--accent-soft); font-weight:700; color:var(--accent)}
+tbody tr:nth-child(even){background:#f6faff}
+
+/* DIAGRAM */
+.diagram{margin:16px 0; text-align:center}
+.diagram svg{max-width:100%; height:auto}
+.cap{font-size:13px; color:var(--ink-soft); margin-top:6px; text-align:center}
+
+/* SUMMARY checklist */
+.learned{list-style:none; padding-left:0}
+.learned li{position:relative; padding-left:28px; margin:.4em 0}
+.learned li::before{content:"✓"; position:absolute; left:0; top:0; color:var(--green); font-weight:800}
+
+/* PAGER */
+.pager{display:flex; justify-content:space-between; gap:14px; margin-top:30px}
+.pager a{
+  flex:1; background:var(--card-bg); border:1px solid var(--border); border-radius:14px;
+  padding:14px 18px; box-shadow:var(--shadow); font-weight:650;
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.pager a:hover{transform:translateY(-2px); box-shadow:var(--shadow-lg); text-decoration:none}
+.pager a.next{text-align:right}
+.pager a small{display:block; font-size:11.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-soft); font-weight:700}
+.pager a.disabled{opacity:.4; pointer-events:none}
+
+/* FOOTER */
+footer{margin-top:40px; padding-top:20px; border-top:1px solid var(--border); color:var(--ink-soft); font-size:13.5px; text-align:center}
+
+@media (max-width:760px){
+  .wrap{padding:18px 14px 60px}
+  .hero{padding:28px 22px; border-radius:20px}
+  .card{padding:20px 18px}
+  .grid{grid-template-columns:1fr}
+  .pager{flex-direction:column}
+  .pager a.next{text-align:left}
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="hero">
+  <span class="eyebrow">20-Hour Learning Plan</span>
+  <h1>Session 4 — File System, Streams &amp; Buffers (2h)</h1>
+  <p class="lead"><strong>Goal:</strong> Read/write files, process large data with streams, and understand Buffers.</p>
+  
+</header>
+<nav class="crumbs" aria-label="Breadcrumb">
+  <a href="../index.html">Learn Node.js</a><span>/</span>
+  <a href="index.html">20-Hour Learning Plan</a><span>/</span>Session 4 — File System, Streams &amp; Buffers (2h)
+</nav>
+<section class="card"><h3>Why this matters (80/20) <span class="tag">Why it matters</span></h3><p>Streams = how Node handles big data efficiently (logs, uploads, video). The <code>fs</code> module is in nearly every real app.</p><hr></section>
+<section class="card"><h3>Plan <span class="tag">Plan</span></h3><h4>0–15 min — Warm-up</h4><ul><li>Read: <a href="https://nodejs.org/en/learn/manipulating-files/working-with-files" target="_blank" rel="noopener noreferrer">Working with files</a></li><li>Skim: <a href="https://nodejs.org/api/stream.html#stream" target="_blank" rel="noopener noreferrer">Streams</a></li></ul><h4>15–90 min — Core Hands-on</h4><ol><li><strong>Sync vs async fs:</strong></li></ol><pre><code data-lang="js">   const fs = require("fs");
+   const fsp = require("fs/promises");
+   fs.writeFileSync("out.txt", "hi");
+   await fsp.writeFile("out2.txt", "hi");</code></pre><ol><li><strong>Paths:</strong> always use <code>path.join(__dirname, "data", "file.txt")</code>.</li><li><strong>Buffers:</strong> <code>Buffer.from("hello").toString("hex")</code>.</li><li><strong>Streams — read a large file:</strong></li></ol><pre><code data-lang="js">   const fs = require("fs");
+   const r = fs.createReadStream("big.txt", { encoding: "utf8" });
+   r.on("data", chunk =&gt; console.log("chunk:", chunk.length));
+   r.on("end", () =&gt; console.log("done"));</code></pre><ol><li><strong>Pipe pattern (the killer feature):</strong></li></ol><pre><code data-lang="js">   fs.createReadStream("in.txt").pipe(fs.createWriteStream("out.txt"));</code></pre><ol><li><strong>Transform stream:</strong> uppercase every chunk using <code>stream.Transform</code>.</li></ol><h4>90–105 min — Mini-challenge</h4><p>Write a script <code>wc.js</code> that counts lines in a file using a stream (don’t load the whole file into memory).</p><h4>105–120 min — 15-min Review</h4><ul><li>Why streams over <code>readFile</code> for big files? (memory)</li><li>The 4 stream types: Readable, Writable, Duplex, Transform.</li><li>Commit code.</li></ul><hr></section>
+<section class="card"><h3>Resources <span class="tag">Resources</span></h3><ul><li>https://nodejs.org/api/fs.html</li><li>https://nodejs.org/api/stream.html</li><li>Article: <em>Node.js Streams: Everything you need to know</em> — freeCodeCamp</li></ul></section>
+<nav class="pager" aria-label="Lesson navigation"><a class="prev" href="session-03-async.html"><small>Previous</small>Session 3 — Asynchronous JavaScript (2h)</a><a class="next" href="session-05-events.html"><small>Next</small>Session 5 — Events &amp; the EventEmitter Pattern (2h)</a></nav>
+<footer>Learn Node.js · 20-Hour Learning Plan · Part 4 of 10 · Built with a light soft-UI docs theme.</footer>
+</main>
+<script>
+(function(){
+  var BT = String.fromCharCode(96);
+  var KW = {
+    js: new Set(("const let var function return if else for while do switch case break continue "+
+      "new class extends super this typeof instanceof in of try catch finally throw async await "+
+      "yield import export default from as void delete null undefined true false NaN Infinity "+
+      "static get set require module exports process console global __dirname __filename "+
+      "Promise Array Object String Number Boolean Map Set JSON Math Date Symbol Buffer setTimeout "+
+      "setInterval setImmediate fetch").split(" ")),
+    bash: new Set(("npm npx node nvm cd ls mkdir rm rmdir git curl wget echo export cat touch pwd "+
+      "sudo code set chmod mv cp grep find which clear pnpm yarn docker").split(" ")),
+    json: new Set("true false null".split(" ")),
+    text: new Set([])
+  };
+  function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+  function isIdStart(c){return /[A-Za-z_$]/.test(c);}
+  function isId(c){return /[A-Za-z0-9_$]/.test(c);}
+  function highlight(code, lang){
+    if(lang==="text"){return '<span class="t-out">'+esc(code)+'</span>';}
+    var lineComment = (lang==="bash") ? "#" : "//";
+    var kw = KW[lang] || KW.text;
+    var out=""; var i=0; var n=code.length;
+    while(i<n){
+      var c=code[i];
+      if(lineComment && code.substr(i,lineComment.length)===lineComment){
+        var j=code.indexOf("\n",i); if(j<0)j=n;
+        out+='<span class="t-com">'+esc(code.slice(i,j))+'</span>'; i=j; continue;
+      }
+      if(lang==="js" && c==="/" && code[i+1]==="*"){
+        var e=code.indexOf("*/",i+2); e=(e<0)?n:e+2;
+        out+='<span class="t-com">'+esc(code.slice(i,e))+'</span>'; i=e; continue;
+      }
+      if(c==='"' || c==="'" || c===BT){
+        var k=i+1; while(k<n && code[k]!==c){ if(code[k]==="\\")k++; k++; } k++;
+        if(k>n)k=n;
+        out+='<span class="t-str">'+esc(code.slice(i,k))+'</span>'; i=k; continue;
+      }
+      if(/[0-9]/.test(c)){
+        var p=i; while(p<n && /[0-9._xXa-fA-F]/.test(code[p]))p++;
+        out+='<span class="t-num">'+esc(code.slice(i,p))+'</span>'; i=p; continue;
+      }
+      if(isIdStart(c)){
+        var q=i; while(q<n && isId(code[q]))q++;
+        var word=code.slice(i,q);
+        var r=q; while(r<n && code[r]===" ")r++;
+        if(kw.has(word)){ out+='<span class="t-key">'+esc(word)+'</span>'; }
+        else if(code[r]==="("){ out+='<span class="t-fn">'+esc(word)+'</span>'; }
+        else { out+=esc(word); }
+        i=q; continue;
+      }
+      out+=esc(c); i++;
+    }
+    return out;
+  }
+  var labels={js:"JS",bash:"BASH",json:"JSON",text:"TEXT"};
+  var blocks=document.querySelectorAll("pre > code[data-lang]");
+  for(var b=0;b<blocks.length;b++){
+    var el=blocks[b];
+    var lang=el.getAttribute("data-lang")||"text";
+    el.innerHTML=highlight(el.textContent, lang);
+    var chip=document.createElement("span");
+    chip.className="lang-chip";
+    chip.textContent=labels[lang]||lang.toUpperCase();
+    el.parentNode.appendChild(chip);
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 5 — Built-in Modules You'll Use Every Day · Learn Node.js</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --page-bg:#eaf2fc; --card-bg:#ffffff; --accent:#1657c4; --accent-bright:#1f6fe0;
+  --accent-soft:#e3edfb; --ink:#16202e; --ink-soft:#44546a; --code-bg:#0b2a52;
+  --code-ink:#d6e4ff; --border:#d6e3f5; --green:#1f9d57; --red:#d6455a; --amber:#c98a12;
+  --shadow:0 8px 24px rgba(22,87,196,.08); --shadow-lg:0 16px 44px rgba(22,87,196,.14);
+  --t-key:#7cc4ff; --t-str:#9ff0c4; --t-num:#ffd479; --t-com:#6f8cb8; --t-fn:#d6a3ff; --t-out:#cdd9ee;
+}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--page-bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  line-height:1.65; font-size:16px; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1040px; margin:0 auto; padding:28px 20px 80px}
+a{color:var(--accent); text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* HERO */
+.hero{
+  position:relative; overflow:hidden; border-radius:24px; color:#fff;
+  background:linear-gradient(135deg,#1f6fe0 0%,#1657c4 55%,#0e3f93 100%);
+  padding:38px 36px; box-shadow:var(--shadow-lg);
+}
+.hero::after{
+  content:""; position:absolute; top:-90px; right:-70px; width:280px; height:280px;
+  border-radius:50%; background:radial-gradient(circle at center,rgba(255,255,255,.30),rgba(255,255,255,0) 70%);
+}
+.eyebrow{
+  display:inline-block; text-transform:uppercase; letter-spacing:.14em; font-size:12px;
+  font-weight:700; background:rgba(255,255,255,.16); padding:6px 12px; border-radius:999px;
+  margin-bottom:14px;
+}
+.hero h1{margin:.1em 0 .25em; font-size:clamp(28px,5vw,46px); font-weight:800; line-height:1.1; letter-spacing:-.01em}
+.hero .lead{margin:0; max-width:62ch; font-size:clamp(15px,2.2vw,19px); color:#eaf2ffe6}
+.chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:18px}
+.chip{
+  background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.28);
+  color:#fff; padding:6px 13px; border-radius:999px; font-size:13.5px; font-weight:600;
+}
+
+/* SECTION BANNER */
+.banner{
+  display:flex; align-items:center; gap:16px; margin:34px 0 18px; padding:16px 18px;
+  border-radius:16px; background:linear-gradient(135deg,var(--accent-soft),#f3f8ff);
+  border:1px solid var(--border);
+}
+.num{
+  flex:0 0 auto; width:46px; height:46px; border-radius:13px; display:grid; place-items:center;
+  font-weight:800; font-size:19px; color:#fff;
+  background:linear-gradient(135deg,#1f6fe0,#1657c4); box-shadow:var(--shadow);
+}
+.banner h2{margin:0; font-size:21px; font-weight:800; letter-spacing:-.01em}
+.banner p{margin:2px 0 0; color:var(--ink-soft); font-size:14px}
+
+/* GRID + PCARDS */
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:18px}
+.pcard{
+  display:block; background:var(--card-bg); border:1px solid var(--border); border-radius:18px;
+  padding:20px 20px 18px; box-shadow:var(--shadow); color:inherit;
+  transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.pcard:hover{transform:translateY(-3px); box-shadow:var(--shadow-lg); border-color:#b9d0f2; text-decoration:none}
+.pn{
+  display:inline-grid; place-items:center; width:34px; height:34px; border-radius:10px;
+  background:var(--accent-soft); color:var(--accent); font-weight:800; font-size:14px; margin-bottom:12px;
+}
+.pcard h3{margin:0 0 6px; font-size:17.5px; font-weight:750; display:flex; align-items:center; gap:8px}
+.pcard p{margin:0 0 14px; color:var(--ink-soft); font-size:14px; min-height:38px}
+.lvl{
+  display:inline-block; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:999px;
+  text-transform:uppercase; letter-spacing:.05em;
+}
+.lvl.beg{background:#e3f6ec; color:var(--green)}
+.lvl.int{background:#fef3da; color:var(--amber)}
+.lvl.adv{background:#fbe4e8; color:var(--red)}
+
+/* CRUMBS */
+.crumbs{margin:22px 0 8px; font-size:13.5px; color:var(--ink-soft)}
+.crumbs a{font-weight:600}
+.crumbs span{margin:0 8px; opacity:.6}
+
+/* CARD (lesson content) */
+.card{
+  background:var(--card-bg); border:1px solid var(--border); border-radius:18px;
+  padding:24px 26px; box-shadow:var(--shadow); margin:18px 0;
+}
+.card>h3:first-child,.card>h4:first-child{margin-top:0}
+.card h3{font-size:20px; font-weight:780; letter-spacing:-.01em; margin:.2em 0 .5em; display:flex; align-items:center; flex-wrap:wrap; gap:10px}
+.card h4{font-size:16.5px; font-weight:750; margin:1.1em 0 .4em}
+.card h5{font-size:15px; font-weight:700; margin:1em 0 .3em; color:var(--ink-soft)}
+.tag{
+  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+  background:var(--accent-soft); color:var(--accent); padding:4px 10px; border-radius:999px;
+}
+.card p{margin:.6em 0}
+.card ul,.card ol{margin:.5em 0; padding-left:1.4em}
+.card li{margin:.3em 0}
+.card li::marker{color:var(--accent); font-weight:700}
+.card code{
+  background:#eef4fe; color:#0e3f93; padding:1px 6px; border-radius:6px; font-size:.92em;
+  font-family:"SF Mono","Fira Code","Cascadia Code",Consolas,monospace;
+}
+hr{border:none; border-top:1px solid var(--border); margin:1.4em 0}
+
+/* CALLOUTS */
+.callout{
+  display:flex; gap:12px; align-items:flex-start; border-radius:14px; padding:14px 16px;
+  margin:14px 0; border:1px solid var(--border); font-size:14.5px;
+}
+.callout .ico{font-size:18px; line-height:1.4}
+.callout.note{background:#eef4fe; border-color:#cfe0fa}
+.callout.tip{background:#e9f8ef; border-color:#c7ebd6}
+.callout.warn{background:#fdeef0; border-color:#f6cdd5}
+.callout code{background:rgba(255,255,255,.7)}
+
+/* CODE */
+pre{
+  position:relative; background:var(--code-bg); color:var(--code-ink); border-radius:14px;
+  padding:18px 18px 16px; overflow:auto; margin:14px 0; box-shadow:var(--shadow);
+  font-family:"SF Mono","Fira Code","Cascadia Code",Consolas,monospace; font-size:13.5px; line-height:1.6;
+}
+pre code{font-family:inherit; background:none; color:inherit; padding:0; white-space:pre}
+.lang-chip{
+  position:absolute; top:10px; right:12px; font-size:10.5px; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; color:#9fc0ee; background:rgba(255,255,255,.07);
+  padding:3px 8px; border-radius:7px; pointer-events:none;
+}
+.t-key{color:var(--t-key)} .t-str{color:var(--t-str)} .t-num{color:var(--t-num)}
+.t-com{color:var(--t-com); font-style:italic} .t-fn{color:var(--t-fn)} .t-out{color:var(--t-out)}
+
+/* TABLE */
+.tablewrap{overflow-x:auto; margin:14px 0}
+table{border-collapse:collapse; width:100%; font-size:14px}
+th,td{border:1px solid var(--border); padding:9px 12px; text-align:left; vertical-align:top}
+th{background:var(--accent-soft); font-weight:700; color:var(--accent)}
+tbody tr:nth-child(even){background:#f6faff}
+
+/* DIAGRAM */
+.diagram{margin:16px 0; text-align:center}
+.diagram svg{max-width:100%; height:auto}
+.cap{font-size:13px; color:var(--ink-soft); margin-top:6px; text-align:center}
+
+/* SUMMARY checklist */
+.learned{list-style:none; padding-left:0}
+.learned li{position:relative; padding-left:28px; margin:.4em 0}
+.learned li::before{content:"✓"; position:absolute; left:0; top:0; color:var(--green); font-weight:800}
+
+/* PAGER */
+.pager{display:flex; justify-content:space-between; gap:14px; margin-top:30px}
+.pager a{
+  flex:1; background:var(--card-bg); border:1px solid var(--border); border-radius:14px;
+  padding:14px 18px; box-shadow:var(--shadow); font-weight:650;
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.pager a:hover{transform:translateY(-2px); box-shadow:var(--shadow-lg); text-decoration:none}
+.pager a.next{text-align:right}
+.pager a small{display:block; font-size:11.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-soft); font-weight:700}
+.pager a.disabled{opacity:.4; pointer-events:none}
+
+/* FOOTER */
+footer{margin-top:40px; padding-top:20px; border-top:1px solid var(--border); color:var(--ink-soft); font-size:13.5px; text-align:center}
+
+@media (max-width:760px){
+  .wrap{padding:18px 14px 60px}
+  .hero{padding:28px 22px; border-radius:20px}
+  .card{padding:20px 18px}
+  .grid{grid-template-columns:1fr}
+  .pager{flex-direction:column}
+  .pager a.next{text-align:left}
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="hero">
+  <span class="eyebrow">Node.js Core</span>
+  <h1>Lesson 5 — Built-in Modules You'll Use Every Day</h1>
+  
+  <div class="chips"><span class="chip">Time: 60 min</span><span class="chip">Goal: Get hands-on with the 4 stdlib modules that appear in nearly every Node project: <code>fs</code>, <code>path</code>, <code>os</code>, <code>url</code>.</span></div>
+</header>
+<nav class="crumbs" aria-label="Breadcrumb">
+  <a href="../index.html">Learn Node.js</a><span>/</span>
+  <a href="index.html">Node.js Core</a><span>/</span>Lesson 5 — Built-in Modules You'll Use Every Day
+</nav>
+<section class="card"><hr></section>
+<section class="card"><h3>1. <code>path</code> — build file paths that work everywhere (15 min) <span class="tag">Hands-on</span></h3><p>Windows uses <code>\</code>. Mac/Linux use <code>/</code>. <strong>Never concatenate paths with <code>+</code></strong> — use the <code>path</code> module.</p><pre><code data-lang="js">const path = require("path");
+
+const p = path.join(__dirname, "data", "users.json");
+console.log(p);
+// Windows: C:\node-learning\nodejs-basics\05\data\users.json
+// macOS:   /home/.../05/data/users.json</code></pre><p>The methods you'll use:</p><pre><code data-lang="js">path.join("a", "b", "c.txt")          // "a/b/c.txt" — joins with the OS separator
+path.resolve("a", "b")                // absolute path (uses cwd)
+path.basename("/x/y/file.txt")        // "file.txt"
+path.basename("/x/y/file.txt", ".txt")// "file"
+path.dirname("/x/y/file.txt")         // "/x/y"
+path.extname("/x/y/file.txt")         // ".txt"
+path.parse("/x/y/file.txt")
+// { root:"/", dir:"/x/y", base:"file.txt", ext:".txt", name:"file" }</code></pre><p><strong>Rule of thumb:</strong> when reading or writing a file, build the path with <code>path.join(__dirname, ...)</code>. That works regardless of where the user runs your script.</p></section>
+<section class="card"><h3>2. <code>fs</code> — the file system (20 min) <span class="tag">Concept</span></h3><p><code>fs</code> has <strong>three flavors</strong> for almost every operation:</p><ol><li><strong>Sync</strong> (<code>fs.readFileSync</code>) — blocks. Easy to use, OK for scripts and startup.</li><li><strong>Callback async</strong> (<code>fs.readFile</code>) — the old way. Avoid in new code.</li><li><strong>Promise async</strong> (<code>fs.promises.readFile</code>) — modern, use with <code>async/await</code>.</li></ol><p>We'll show all three, then stick with promises.</p><h4>Reading</h4><pre><code data-lang="js">const fs = require("fs");
+const path = require("path");
+
+const file = path.join(__dirname, "hello.txt");
+
+// 1. Sync
+const dataSync = fs.readFileSync(file, "utf-8");
+console.log(dataSync);
+
+// 2. Callback
+fs.readFile(file, "utf-8", (err, data) =&gt; {
+  if (err) return console.error(err);
+  console.log(data);
+});
+
+// 3. Promise — preferred
+const fsp = require("fs/promises");
+
+async function read() {
+  const data = await fsp.readFile(file, "utf-8");
+  console.log(data);
+}
+read();</code></pre><div class="callout note"><span class="ico" aria-hidden="true">📌</span><div>Always pass <code>"utf-8"</code> when reading text. Otherwise you get a raw <code>Buffer</code> (binary).</div></div><h4>Writing, appending, deleting</h4><pre><code data-lang="js">const fsp = require("fs/promises");
+const path = require("path");
+
+const file = path.join(__dirname, "notes.txt");
+
+async function demo() {
+  await fsp.writeFile(file, "First line\n");           // overwrites
+  await fsp.appendFile(file, "Second line\n");         // adds
+  const text = await fsp.readFile(file, "utf-8");
+  console.log(text);
+  // await fsp.unlink(file);                           // delete
+}
+demo();</code></pre><h4>Working with directories</h4><pre><code data-lang="js">const fsp = require("fs/promises");
+
+async function demo() {
+  await fsp.mkdir("output", { recursive: true });      // mkdir -p
+  const files = await fsp.readdir(".");                // ["a.js", "b.js", ...]
+  console.log("Files here:", files);
+
+  const stat = await fsp.stat("README.md");
+  console.log("Size:", stat.size, "bytes");
+  console.log("Is file?", stat.isFile());
+  console.log("Is dir? ", stat.isDirectory());
+}
+demo();</code></pre><h4>Check if a file exists</h4><p>There's no clean <code>exists()</code> — use <code>stat</code> or <code>access</code>:</p><pre><code data-lang="js">const fsp = require("fs/promises");
+
+async function exists(p) {
+  try { await fsp.access(p); return true; }
+  catch { return false; }
+}
+
+(async () =&gt; {
+  console.log(await exists("./package.json"));   // true
+  console.log(await exists("./nope.txt"));       // false
+})();</code></pre><h4>Mini real-world example: tiny JSON store</h4><pre><code data-lang="js">const fsp = require("fs/promises");
+const path = require("path");
+const FILE = path.join(__dirname, "todos.json");
+
+async function load() {
+  try {
+    return JSON.parse(await fsp.readFile(FILE, "utf-8"));
+  } catch {
+    return [];   // first run, file doesn't exist
+  }
+}
+
+async function save(todos) {
+  await fsp.writeFile(FILE, JSON.stringify(todos, null, 2));
+}
+
+(async () =&gt; {
+  const todos = await load();
+  todos.push({ id: Date.now(), text: process.argv[2] || "untitled" });
+  await save(todos);
+  console.log("Saved. Total:", todos.length);
+})();</code></pre><p>Run several times with different args: <code>node store.js "buy milk"</code>. Open <code>todos.json</code>.</p></section>
+<section class="card"><h3>3. <code>os</code> — info about the machine (10 min) <span class="tag">Concept</span></h3><pre><code data-lang="js">const os = require("os");
+
+os.platform()                  // "win32"
+os.type()                      // "Windows_NT"
+os.arch()                      // "x64"
+os.cpus().length               // number of CPU cores
+os.totalmem() / 1024**3        // total RAM in GB
+os.freemem()  / 1024**3        // free RAM in GB
+os.hostname()                  // computer name
+os.homedir()                   // your home directory
+os.uptime()                    // seconds since boot
+os.userInfo()                  // { username, uid, homedir, shell }
+os.networkInterfaces()         // network adapters
+os.EOL                         // "\n" or "\r\n" — line separator for this OS</code></pre><p>Useful when you write tools that need to behave differently per OS, or when you log system stats.</p></section>
+<section class="card"><h3>4. <code>url</code> — parsing &amp; building URLs (10 min) <span class="tag">Hands-on</span></h3><p>Modern code uses the <code>URL</code> class (also built into browsers — same API).</p><pre><code data-lang="js">const u = new URL("https://example.com:8080/api/users?id=42&amp;active=true#top");
+
+u.protocol      // "https:"
+u.hostname      // "example.com"
+u.port          // "8080"
+u.pathname      // "/api/users"
+u.search        // "?id=42&amp;active=true"
+u.hash          // "#top"
+u.searchParams.get("id")        // "42"
+u.searchParams.get("active")    // "true"
+u.searchParams.set("page", 2);
+console.log(u.toString());
+// "https://example.com:8080/api/users?id=42&amp;active=true&amp;page=2#top"</code></pre><p>You'll use <code>URL</code> heavily in Session 6 when parsing incoming HTTP requests.</p></section>
+<section class="card"><h3>5. Mini exercise (10 min) <span class="tag">Hands-on</span></h3><p>Build <code>report.js</code> that:</p><ol><li>Uses <code>os</code> to gather: hostname, platform, CPU count, free memory (in MB).</li><li>Builds a path with <code>path.join(__dirname, "reports", "system.json")</code>.</li><li>Creates the <code>reports</code> folder if it doesn't exist (<code>fs.promises.mkdir</code> with <code>recursive: true</code>).</li><li>Writes the data as pretty JSON.</li><li>Reads it back and <code>console.log</code>s it.</li></ol><p>Run a few times — confirm the file updates.</p><hr></section>
+<section class="card"><h3>5-min recap <span class="tag">Summary</span></h3><ol><li>Why use <code>path.join</code> instead of <code>"folder/" + name</code>?</li><li>What's the difference between <code>fs.readFileSync</code> and <code>fs.promises.readFile</code>?</li><li>How do you check if a file exists without throwing?</li><li>What does <code>new URL(...).searchParams.get("id")</code> return?</li></ol><p>When you're done → <a href="06-async-basics.html">06-async-basics.md</a></p></section>
+<nav class="pager" aria-label="Lesson navigation"><a class="prev" href="04-npm-deep-dive.html"><small>Previous</small>Lesson 4 — npm Deep Dive: `package.json`, Scripts &amp; Semver</a><a class="next" href="06-async-basics.html"><small>Next</small>Lesson 6 — Async Basics: Callbacks → Promises → `async/await`</a></nav>
+<footer>Learn Node.js · Node.js Core · Part 5 of 8 · Built with a light soft-UI docs theme.</footer>
+</main>
+<script>
+(function(){
+  var BT = String.fromCharCode(96);
+  var KW = {
+    js: new Set(("const let var function return if else for while do switch case break continue "+
+      "new class extends super this typeof instanceof in of try catch finally throw async await "+
+      "yield import export default from as void delete null undefined true false NaN Infinity "+
+      "static get set require module exports process console global __dirname __filename "+
+      "Promise Array Object String Number Boolean Map Set JSON Math Date Symbol Buffer setTimeout "+
+      "setInterval setImmediate fetch").split(" ")),
+    bash: new Set(("npm npx node nvm cd ls mkdir rm rmdir git curl wget echo export cat touch pwd "+
+      "sudo code set chmod mv cp grep find which clear pnpm yarn docker").split(" ")),
+    json: new Set("true false null".split(" ")),
+    text: new Set([])
+  };
+  function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+  function isIdStart(c){return /[A-Za-z_$]/.test(c);}
+  function isId(c){return /[A-Za-z0-9_$]/.test(c);}
+  function highlight(code, lang){
+    if(lang==="text"){return '<span class="t-out">'+esc(code)+'</span>';}
+    var lineComment = (lang==="bash") ? "#" : "//";
+    var kw = KW[lang] || KW.text;
+    var out=""; var i=0; var n=code.length;
+    while(i<n){
+      var c=code[i];
+      if(lineComment && code.substr(i,lineComment.length)===lineComment){
+        var j=code.indexOf("\n",i); if(j<0)j=n;
+        out+='<span class="t-com">'+esc(code.slice(i,j))+'</span>'; i=j; continue;
+      }
+      if(lang==="js" && c==="/" && code[i+1]==="*"){
+        var e=code.indexOf("*/",i+2); e=(e<0)?n:e+2;
+        out+='<span class="t-com">'+esc(code.slice(i,e))+'</span>'; i=e; continue;
+      }
+      if(c==='"' || c==="'" || c===BT){
+        var k=i+1; while(k<n && code[k]!==c){ if(code[k]==="\\")k++; k++; } k++;
+        if(k>n)k=n;
+        out+='<span class="t-str">'+esc(code.slice(i,k))+'</span>'; i=k; continue;
+      }
+      if(/[0-9]/.test(c)){
+        var p=i; while(p<n && /[0-9._xXa-fA-F]/.test(code[p]))p++;
+        out+='<span class="t-num">'+esc(code.slice(i,p))+'</span>'; i=p; continue;
+      }
+      if(isIdStart(c)){
+        var q=i; while(q<n && isId(code[q]))q++;
+        var word=code.slice(i,q);
+        var r=q; while(r<n && code[r]===" ")r++;
+        if(kw.has(word)){ out+='<span class="t-key">'+esc(word)+'</span>'; }
+        else if(code[r]==="("){ out+='<span class="t-fn">'+esc(word)+'</span>'; }
+        else { out+=esc(word); }
+        i=q; continue;
+      }
+      out+=esc(c); i++;
+    }
+    return out;
+  }
+  var labels={js:"JS",bash:"BASH",json:"JSON",text:"TEXT"};
+  var blocks=document.querySelectorAll("pre > code[data-lang]");
+  for(var b=0;b<blocks.length;b++){
+    var el=blocks[b];
+    var lang=el.getAttribute("data-lang")||"text";
+    el.innerHTML=highlight(el.textContent, lang);
+    var chip=document.createElement("span");
+    chip.className="lang-chip";
+    chip.textContent=labels[lang]||lang.toUpperCase();
+    el.parentNode.appendChild(chip);
+  }
+})();
+</script>
+</body>
+</html>
