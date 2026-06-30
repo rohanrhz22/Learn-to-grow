@@ -5,197 +5,100 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lesson 1 — Install Node, VS Code & Use the Terminal · Learn Node.js</title>
 <style>
-*{box-sizing:border-box}
 :root{
-  --page-bg:#eaf2fc; --card-bg:#ffffff; --accent:#1657c4; --accent-bright:#1f6fe0;
-  --accent-soft:#e3edfb; --ink:#16202e; --ink-soft:#44546a; --code-bg:#0b2a52;
-  --code-ink:#d6e4ff; --border:#d6e3f5; --green:#1f9d57; --red:#d6455a; --amber:#c98a12;
-  --shadow:0 8px 24px rgba(22,87,196,.08); --shadow-lg:0 16px 44px rgba(22,87,196,.14);
-  --t-key:#7cc4ff; --t-str:#9ff0c4; --t-num:#ffd479; --t-com:#6f8cb8; --t-fn:#d6a3ff; --t-out:#cdd9ee;
+  --page-bg:#eaf2fc;--card-bg:#ffffff;--accent:#1657c4;--accent-bright:#1f6fe0;
+  --accent-soft:#e3edfb;--ink:#16202e;--ink-soft:#44546a;--code-bg:#0b2a52;
+  --code-ink:#d6e4ff;--border:#d6e3f5;--green:#1f9d57;--red:#d6455a;--amber:#c98a12;
+  --shadow:0 8px 24px rgba(22,87,196,.08);--shadow-lg:0 16px 44px rgba(22,87,196,.14);
 }
-html{scroll-behavior:smooth}
-body{
-  margin:0; background:var(--page-bg); color:var(--ink);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-  line-height:1.65; font-size:16px; -webkit-font-smoothing:antialiased;
-}
-.wrap{max-width:1040px; margin:0 auto; padding:28px 20px 80px}
-a{color:var(--accent); text-decoration:none}
-a:hover{text-decoration:underline}
-
-/* HERO */
-.hero{
-  position:relative; overflow:hidden; border-radius:24px; color:#fff;
-  background:linear-gradient(135deg,#1f6fe0 0%,#1657c4 55%,#0e3f93 100%);
-  padding:38px 36px; box-shadow:var(--shadow-lg);
-}
-.hero::after{
-  content:""; position:absolute; top:-90px; right:-70px; width:280px; height:280px;
-  border-radius:50%; background:radial-gradient(circle at center,rgba(255,255,255,.30),rgba(255,255,255,0) 70%);
-}
-.eyebrow{
-  display:inline-block; text-transform:uppercase; letter-spacing:.14em; font-size:12px;
-  font-weight:700; background:rgba(255,255,255,.16); padding:6px 12px; border-radius:999px;
-  margin-bottom:14px;
-}
-.hero h1{margin:.1em 0 .25em; font-size:clamp(28px,5vw,46px); font-weight:800; line-height:1.1; letter-spacing:-.01em}
-.hero .lead{margin:0; max-width:62ch; font-size:clamp(15px,2.2vw,19px); color:#eaf2ffe6}
-.chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:18px}
-.chip{
-  background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.28);
-  color:#fff; padding:6px 13px; border-radius:999px; font-size:13.5px; font-weight:600;
-}
-
-/* SECTION BANNER */
-.banner{
-  display:flex; align-items:center; gap:16px; margin:34px 0 18px; padding:16px 18px;
-  border-radius:16px; background:linear-gradient(135deg,var(--accent-soft),#f3f8ff);
-  border:1px solid var(--border);
-}
-.num{
-  flex:0 0 auto; width:46px; height:46px; border-radius:13px; display:grid; place-items:center;
-  font-weight:800; font-size:19px; color:#fff;
-  background:linear-gradient(135deg,#1f6fe0,#1657c4); box-shadow:var(--shadow);
-}
-.banner h2{margin:0; font-size:21px; font-weight:800; letter-spacing:-.01em}
-.banner p{margin:2px 0 0; color:var(--ink-soft); font-size:14px}
-
-/* GRID + PCARDS */
-.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:18px}
-.pcard{
-  display:block; background:var(--card-bg); border:1px solid var(--border); border-radius:18px;
-  padding:20px 20px 18px; box-shadow:var(--shadow); color:inherit;
-  transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
-}
-.pcard:hover{transform:translateY(-3px); box-shadow:var(--shadow-lg); border-color:#b9d0f2; text-decoration:none}
-.pn{
-  display:inline-grid; place-items:center; width:34px; height:34px; border-radius:10px;
-  background:var(--accent-soft); color:var(--accent); font-weight:800; font-size:14px; margin-bottom:12px;
-}
-.pcard h3{margin:0 0 6px; font-size:17.5px; font-weight:750; display:flex; align-items:center; gap:8px}
-.pcard p{margin:0 0 14px; color:var(--ink-soft); font-size:14px; min-height:38px}
-.lvl{
-  display:inline-block; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:999px;
-  text-transform:uppercase; letter-spacing:.05em;
-}
-.lvl.beg{background:#e3f6ec; color:var(--green)}
-.lvl.int{background:#fef3da; color:var(--amber)}
-.lvl.adv{background:#fbe4e8; color:var(--red)}
-
-/* CRUMBS */
-.crumbs{margin:22px 0 8px; font-size:13.5px; color:var(--ink-soft)}
-.crumbs a{font-weight:600}
-.crumbs span{margin:0 8px; opacity:.6}
-
-/* CARD (lesson content) */
-.card{
-  background:var(--card-bg); border:1px solid var(--border); border-radius:18px;
-  padding:24px 26px; box-shadow:var(--shadow); margin:18px 0;
-}
-.card>h3:first-child,.card>h4:first-child{margin-top:0}
-.card h3{font-size:20px; font-weight:780; letter-spacing:-.01em; margin:.2em 0 .5em; display:flex; align-items:center; flex-wrap:wrap; gap:10px}
-.card h4{font-size:16.5px; font-weight:750; margin:1.1em 0 .4em}
-.card h5{font-size:15px; font-weight:700; margin:1em 0 .3em; color:var(--ink-soft)}
-.tag{
-  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
-  background:var(--accent-soft); color:var(--accent); padding:4px 10px; border-radius:999px;
-}
-.card p{margin:.6em 0}
-.card ul,.card ol{margin:.5em 0; padding-left:1.4em}
-.card li{margin:.3em 0}
-.card li::marker{color:var(--accent); font-weight:700}
-.card code{
-  background:#eef4fe; color:#0e3f93; padding:1px 6px; border-radius:6px; font-size:.92em;
-  font-family:"SF Mono","Fira Code","Cascadia Code",Consolas,monospace;
-}
-hr{border:none; border-top:1px solid var(--border); margin:1.4em 0}
-
-/* CALLOUTS */
-.callout{
-  display:flex; gap:12px; align-items:flex-start; border-radius:14px; padding:14px 16px;
-  margin:14px 0; border:1px solid var(--border); font-size:14.5px;
-}
-.callout .ico{font-size:18px; line-height:1.4}
-.callout.note{background:#eef4fe; border-color:#cfe0fa}
-.callout.tip{background:#e9f8ef; border-color:#c7ebd6}
-.callout.warn{background:#fdeef0; border-color:#f6cdd5}
-.callout code{background:rgba(255,255,255,.7)}
-
-/* CODE */
-pre{
-  position:relative; background:var(--code-bg); color:var(--code-ink); border-radius:14px;
-  padding:18px 18px 16px; overflow:auto; margin:14px 0; box-shadow:var(--shadow);
-  font-family:"SF Mono","Fira Code","Cascadia Code",Consolas,monospace; font-size:13.5px; line-height:1.6;
-}
-pre code{font-family:inherit; background:none; color:inherit; padding:0; white-space:pre}
-.lang-chip{
-  position:absolute; top:10px; right:12px; font-size:10.5px; font-weight:700; letter-spacing:.08em;
-  text-transform:uppercase; color:#9fc0ee; background:rgba(255,255,255,.07);
-  padding:3px 8px; border-radius:7px; pointer-events:none;
-}
-.t-key{color:var(--t-key)} .t-str{color:var(--t-str)} .t-num{color:var(--t-num)}
-.t-com{color:var(--t-com); font-style:italic} .t-fn{color:var(--t-fn)} .t-out{color:var(--t-out)}
-
-/* TABLE */
-.tablewrap{overflow-x:auto; margin:14px 0}
-table{border-collapse:collapse; width:100%; font-size:14px}
-th,td{border:1px solid var(--border); padding:9px 12px; text-align:left; vertical-align:top}
-th{background:var(--accent-soft); font-weight:700; color:var(--accent)}
-tbody tr:nth-child(even){background:#f6faff}
-
-/* DIAGRAM */
-.diagram{margin:16px 0; text-align:center}
-.diagram svg{max-width:100%; height:auto}
-.cap{font-size:13px; color:var(--ink-soft); margin-top:6px; text-align:center}
-
-/* SUMMARY checklist */
-.learned{list-style:none; padding-left:0}
-.learned li{position:relative; padding-left:28px; margin:.4em 0}
-.learned li::before{content:"✓"; position:absolute; left:0; top:0; color:var(--green); font-weight:800}
-
-/* PAGER */
-.pager{display:flex; justify-content:space-between; gap:14px; margin-top:30px}
-.pager a{
-  flex:1; background:var(--card-bg); border:1px solid var(--border); border-radius:14px;
-  padding:14px 18px; box-shadow:var(--shadow); font-weight:650;
-  transition:transform .15s ease, box-shadow .15s ease;
-}
-.pager a:hover{transform:translateY(-2px); box-shadow:var(--shadow-lg); text-decoration:none}
-.pager a.next{text-align:right}
-.pager a small{display:block; font-size:11.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-soft); font-weight:700}
-.pager a.disabled{opacity:.4; pointer-events:none}
-
-/* FOOTER */
-footer{margin-top:40px; padding-top:20px; border-top:1px solid var(--border); color:var(--ink-soft); font-size:13.5px; text-align:center}
-
-@media (max-width:760px){
-  .wrap{padding:18px 14px 60px}
-  .hero{padding:28px 22px; border-radius:20px}
-  .card{padding:20px 18px}
-  .grid{grid-template-columns:1fr}
-  .pager{flex-direction:column}
-  .pager a.next{text-align:left}
-}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  background:var(--page-bg);color:var(--ink);line-height:1.65;font-size:16px}
+.shell{display:grid;grid-template-columns:270px 1fr;max-width:1280px;margin:0 auto}
+.hub{max-width:1100px;margin:0 auto;padding:0 clamp(20px,4vw,48px) 80px}
+.sidebar{position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;padding:24px 16px 40px;border-right:1px solid var(--border)}
+.sidebar .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.02rem;color:var(--accent);margin-bottom:8px;padding-left:6px}
+.sidebar .brand .logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent-bright),var(--accent));display:grid;place-items:center;color:#fff;font-weight:800;font-size:.9rem;box-shadow:var(--shadow)}
+.sidebar .partlabel{font-size:.72rem;color:var(--ink-soft);padding-left:6px;margin-bottom:18px;font-weight:600}
+.nav-group-title{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);margin:16px 0 6px 6px;font-weight:700}
+.sidebar a{display:block;text-decoration:none;color:var(--ink-soft);padding:7px 12px;border-radius:8px;font-size:.9rem;transition:all .15s}
+.sidebar a:hover{background:var(--accent-soft);color:var(--accent)}
+.sidebar a.home{color:var(--accent);font-weight:700}
+.content{padding:0 clamp(20px,4vw,56px) 80px;min-width:0}
+.hero{margin:28px 0 30px;padding:44px 42px;border-radius:22px;background:linear-gradient(135deg,#1f6fe0 0%,#1657c4 55%,#0e3f93 100%);color:#fff;box-shadow:var(--shadow-lg);position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-60px;top:-60px;width:240px;height:240px;background:radial-gradient(circle,rgba(255,255,255,.18),transparent 70%);border-radius:50%}
+.hero .eyebrow{text-transform:uppercase;letter-spacing:.14em;font-size:.74rem;font-weight:700;opacity:.9}
+.hero h1{margin:12px 0 14px;font-size:clamp(1.7rem,3.6vw,2.5rem);line-height:1.15;font-weight:800}
+.hero p{margin:0;max-width:660px;font-size:1.04rem;opacity:.95}
+.hero .chips{margin-top:20px;display:flex;flex-wrap:wrap;gap:10px}
+.hero .chips span{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);padding:6px 14px;border-radius:999px;font-size:.82rem;font-weight:600}
+.crumbs{display:flex;gap:8px;align-items:center;font-size:.85rem;margin:24px 0 0;color:var(--ink-soft);flex-wrap:wrap}
+.crumbs a{color:var(--accent);text-decoration:none}
+.section-banner{margin:42px 0 22px;padding:22px 26px;border-radius:16px;background:linear-gradient(120deg,var(--accent-soft),#f3f8ff);border:1px solid var(--border);border-left:5px solid var(--accent-bright);display:flex;align-items:center;gap:16px}
+.section-banner .num{flex:0 0 auto;width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,var(--accent-bright),var(--accent));color:#fff;display:grid;place-items:center;font-weight:800;font-size:1.2rem;box-shadow:var(--shadow)}
+.section-banner h2{margin:0;font-size:1.45rem;color:var(--accent);font-weight:800}
+.section-banner p{margin:4px 0 0;color:var(--ink-soft);font-size:.92rem}
+.card{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:24px 28px;margin:18px 0;box-shadow:var(--shadow);scroll-margin-top:20px}
+.card h3{margin:0 0 12px;font-size:1.16rem;color:var(--ink);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.card h3 .tag{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;background:var(--accent-soft);color:var(--accent);padding:3px 9px;border-radius:6px}
+.card h4{margin:20px 0 8px;font-size:1.0rem;color:var(--accent)}
+.card h5{margin:16px 0 6px;font-size:.94rem;color:var(--ink-soft)}
+.card p{margin:8px 0}.card ul,.card ol{margin:8px 0;padding-left:22px}.card li{margin:5px 0}
+.card li::marker{color:var(--accent)}
+.lead{color:var(--ink-soft)}
+pre{background:var(--code-bg);color:var(--code-ink);border-radius:12px;padding:18px 20px;overflow-x:auto;font-size:.88rem;line-height:1.6;margin:14px 0;border:1px solid #123a6b;box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 6px 18px rgba(11,42,82,.25);position:relative}
+pre code{font-family:"SF Mono","Fira Code","Cascadia Code",Consolas,monospace;white-space:pre;background:none;color:inherit;padding:0}
+pre .lang{position:absolute;top:0;right:0;background:#123a6b;color:#8fb6f0;font-size:.66rem;font-weight:700;letter-spacing:.06em;padding:3px 10px;border-radius:0 12px 0 10px;text-transform:uppercase;pointer-events:none}
+.t-key{color:#6db3ff}.t-str{color:#7fe0a8}.t-num{color:#f3b05a}.t-com{color:#6b86ad;font-style:italic}.t-fn{color:#c79bff}.t-out{color:#9fd0ff}
+code.inline{background:var(--accent-soft);color:var(--accent);padding:2px 7px;border-radius:6px;font-family:"SF Mono",Consolas,monospace;font-size:.86em;font-weight:600}
+.callout{border-radius:12px;padding:14px 18px;margin:16px 0;display:flex;gap:12px;align-items:flex-start;font-size:.94rem}
+.callout .ico{flex:0 0 auto;font-size:1.15rem;line-height:1.5}
+.callout.note{background:#eef5ff;border:1px solid #cfe0fb;color:#214a87}
+.callout.tip{background:#ecfaf1;border:1px solid #c2ebd2;color:#166c3c}
+.callout.warn{background:#fff6e8;border:1px solid #f3dcae;color:#8a5a08}
+.callout code.inline{background:rgba(255,255,255,.6)}
+.tablewrap{overflow-x:auto;margin:14px 0}
+table{width:100%;border-collapse:collapse;margin:0;font-size:.92rem;border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
+th{background:var(--accent);color:#fff;text-align:left;padding:11px 16px;font-weight:700}
+td{padding:10px 16px;border-bottom:1px solid var(--border);background:#fff}
+tr:last-child td{border-bottom:none}tr:nth-child(even) td{background:#f6faff}
+.diagram{margin:18px 0;padding:22px;background:linear-gradient(180deg,#f7fbff,#fff);border:1px dashed #c4d8f5;border-radius:14px;text-align:center}
+.diagram .cap{font-size:.82rem;color:var(--ink-soft);margin-top:10px;font-style:italic}
+svg{max-width:100%;height:auto}
+.learned{list-style:none;padding:0;margin:10px 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}
+.learned li{background:#ecfaf1;border:1px solid #c2ebd2;color:#166c3c;padding:9px 14px;border-radius:9px;font-size:.88rem;font-weight:600}
+.learned li::before{content:"✔  ";color:var(--green);font-weight:800}
+.pager{display:flex;justify-content:space-between;gap:14px;margin-top:40px}
+.pager a{flex:1;text-decoration:none;border:1px solid var(--border);border-radius:14px;padding:16px 20px;background:#fff;box-shadow:var(--shadow);transition:all .15s}
+.pager a:hover{border-color:var(--accent-bright);transform:translateY(-2px)}
+.pager .dir{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);font-weight:700}
+.pager .ttl{display:block;margin-top:4px;color:var(--accent);font-weight:700;font-size:.95rem}
+.pager a.next{text-align:right}.pager a.disabled{opacity:.4;pointer-events:none}
+footer{margin-top:50px;padding:28px;text-align:center;color:var(--ink-soft);border-top:1px solid var(--border);font-size:.88rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;margin-top:8px}
+.pcard{display:block;text-decoration:none;background:#fff;border:1px solid var(--border);border-radius:16px;padding:22px;box-shadow:var(--shadow);transition:all .18s;position:relative;overflow:hidden}
+.pcard:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--accent-bright)}
+.pcard .pn{width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,var(--accent-bright),var(--accent));color:#fff;display:grid;place-items:center;font-weight:800;font-size:1.05rem;box-shadow:var(--shadow);margin-bottom:12px}
+.pcard h3{margin:0 0 6px;color:var(--ink);font-size:1.05rem}
+.pcard p{margin:0;color:var(--ink-soft);font-size:.88rem}
+.pcard .lvl{display:inline-block;margin-top:12px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;border-radius:6px}
+.lvl.beg{background:#ecfaf1;color:#166c3c}.lvl.int{background:#eef5ff;color:#214a87}.lvl.adv{background:#fdeef0;color:#a62f43}
+@media(max-width:920px){.shell{grid-template-columns:1fr}.sidebar{display:none}}
+@media(max-width:560px){.hero{padding:34px 26px}.card{padding:20px 18px}.pager{flex-direction:column}.pager a.next{text-align:left}}
 </style>
 </head>
 <body>
-<main class="wrap">
-<header class="hero">
-  <span class="eyebrow">Beginner Basics</span>
-  <h1>Lesson 1 — Install Node, VS Code &amp; Use the Terminal</h1>
-  
-  <div class="chips"><span class="chip">Time: 45 min</span><span class="chip">Goal: Have a working dev environment and be comfortable typing 10 terminal commands.</span></div>
-</header>
-<nav class="crumbs" aria-label="Breadcrumb">
-  <a href="../index.html">Learn Node.js</a><span>/</span>
-  <a href="index.html">Beginner Basics</a><span>/</span>Lesson 1 — Install Node, VS Code &amp; Use the Terminal
-</nav>
-<section class="card"><hr></section>
-<section class="card"><h3>1. Install Node.js (10 min) <span class="tag">Tooling</span></h3><ol><li>Go to https://nodejs.org</li><li>Download the <strong>LTS</strong> version (the green button — LTS = "Long-Term Support" = stable).</li><li>Run the installer. Click <em>Next → Next → Install</em>. Defaults are fine.</li><li><strong>Verify it worked</strong> — open a new terminal (see step 3) and type:</li></ol><pre><code data-lang="bash">   node -v
-   npm -v</code></pre><p>You should see two version numbers like <code>v20.11.0</code> and <code>10.2.4</code>. If yes — Node is installed.</p></section>
-<section class="card"><h3>2. Install VS Code (5 min) <span class="tag">Tooling</span></h3><ol><li>Go to https://code.visualstudio.com</li><li>Download and install.</li><li>Open it. That's your code editor for the rest of the plan.</li></ol><p>Optional but helpful: install the <strong>"JavaScript (ES6) code snippets"</strong> extension from the Extensions panel (left sidebar, square icon).</p></section>
-<section class="card"><h3>3. Open a terminal (5 min) <span class="tag">Concept</span></h3><p>A <strong>terminal</strong> is a window where you type commands instead of clicking buttons.</p><ul><li><strong>In VS Code:</strong> menu <code>Terminal → New Terminal</code>. A panel opens at the bottom. That's your terminal.</li><li><strong>On Windows alone:</strong> press <code>Win</code> key → type <code>PowerShell</code> → open it.</li></ul><p>You'll see a prompt like:</p><pre><code data-lang="text">PS C:\Users\you&gt;</code></pre><p>The <code>PS C:\Users\you&gt;</code> part shows <strong>where you are</strong> (the current folder). You type commands after the <code>&gt;</code>.</p></section>
-<section class="card"><h3>4. The 10 commands you actually need (15 min) <span class="tag">Concept</span></h3><p>Type each one, press Enter, and watch what happens. The <code>#</code> lines are explanations — don't type them.</p><pre><code data-lang="bash"># Where am I?
+<div class="shell"><aside class="sidebar">
+<div class="brand"><span class="logo">🌱</span> Learn Node.js</div>
+<div class="partlabel">Beginner Basics · Part 2 of 8</div>
+<a class="home" href="../index.html">← All lessons</a>
+<div class="nav-group-title">On this page</div><a href="#1-install-node-js-10-min">1. Install Node.js (10 min)</a><a href="#2-install-vs-code-5-min">2. Install VS Code (5 min)</a><a href="#3-open-a-terminal-5-min">3. Open a terminal (5 min)</a><a href="#4-the-10-commands-you-actually-need-15-min">4. The 10 commands you actually need (15 min)</a><a href="#5-open-a-folder-in-vs-code-5-min">5. Open a folder in VS Code (5 min)</a><a href="#5-min-recap">5-min recap</a>
+</aside><main class="content"><div class="crumbs"><a href="../index.html">Learn Node.js</a> › <a href="index.html">Beginner Basics</a> › <span>Lesson 1 — Install Node, VS Code &amp; Use the Terminal</span></div><header class="hero"><div class="eyebrow">Part 2 of 8 · Beginner Basics</div><h1>Lesson 1 — Install Node, VS Code &amp; Use the Terminal</h1><div class="chips"><span>Time: 45 min</span><span>Goal: Have a working dev environment and be comfortable typing 10 terminal commands.</span></div></header><div class="card" id="overview"><hr></div>
+<div class="card" id="1-install-node-js-10-min"><h3><span class="tag">Tooling</span> 1. Install Node.js (10 min)</h3><ol><li>Go to https://nodejs.org</li><li>Download the <strong>LTS</strong> version (the green button — LTS = "Long-Term Support" = stable).</li><li>Run the installer. Click <em>Next → Next → Install</em>. Defaults are fine.</li><li><strong>Verify it worked</strong> — open a new terminal (see step 3) and type:</li></ol><pre><code data-lang="bash">   node -v
+   npm -v</code></pre><p>You should see two version numbers like <code class="inline">v20.11.0</code> and <code class="inline">10.2.4</code>. If yes — Node is installed.</p></div>
+<div class="card" id="2-install-vs-code-5-min"><h3><span class="tag">Tooling</span> 2. Install VS Code (5 min)</h3><ol><li>Go to https://code.visualstudio.com</li><li>Download and install.</li><li>Open it. That's your code editor for the rest of the plan.</li></ol><p>Optional but helpful: install the <strong>"JavaScript (ES6) code snippets"</strong> extension from the Extensions panel (left sidebar, square icon).</p></div>
+<div class="card" id="3-open-a-terminal-5-min"><h3><span class="tag">Concept</span> 3. Open a terminal (5 min)</h3><p>A <strong>terminal</strong> is a window where you type commands instead of clicking buttons.</p><ul><li><strong>In VS Code:</strong> menu <code class="inline">Terminal → New Terminal</code>. A panel opens at the bottom. That's your terminal.</li><li><strong>On Windows alone:</strong> press <code class="inline">Win</code> key → type <code class="inline">PowerShell</code> → open it.</li></ul><p>You'll see a prompt like:</p><pre><code data-lang="text">PS C:\Users\you&gt;</code></pre><p>The <code class="inline">PS C:\Users\you&gt;</code> part shows <strong>where you are</strong> (the current folder). You type commands after the <code class="inline">&gt;</code>.</p></div>
+<div class="card" id="4-the-10-commands-you-actually-need-15-min"><h3><span class="tag">Concept</span> 4. The 10 commands you actually need (15 min)</h3><p>Type each one, press Enter, and watch what happens. The <code class="inline">#</code> lines are explanations — don't type them.</p><pre><code data-lang="bash"># Where am I?
 pwd
 
 # List files in the current folder
@@ -223,12 +126,9 @@ cls
 rm hello.txt
 
 # Remove an empty folder
-rmdir test</code></pre><h4>Try this small exercise</h4><ol><li>Create a folder called <code>node-learning</code>.</li><li>Go into it.</li><li>Create a folder inside called <code>playground</code>.</li><li>Go into <code>playground</code>.</li><li>Run <code>pwd</code> to confirm where you are.</li></ol><p>You'll use <code>node-learning/</code> for every session in the main plan.</p></section>
-<section class="card"><h3>5. Open a folder in VS Code (5 min) <span class="tag">Concept</span></h3><p>In VS Code: <code>File → Open Folder…</code> → pick your <code>node-learning</code> folder. Now the left sidebar shows your files, and the terminal at the bottom is already pointing at that folder. <strong>This is the setup you'll use for every session.</strong></p><hr></section>
-<section class="card"><h3>5-min recap <span class="tag">Summary</span></h3><ol><li>What does <code>cd</code> do? What about <code>ls</code>?</li><li>How do you check that Node is installed?</li><li>What's the difference between a "terminal" and an "editor"?</li><li>Where is your <code>node-learning/</code> folder on your machine?</li></ol><p>When you're done → <a href="02-javascript-essentials.html">02-javascript-essentials.md</a></p></section>
-<nav class="pager" aria-label="Lesson navigation"><a class="prev" href="00-what-is-nodejs.html"><small>Previous</small>Lesson 0 — What is Node.js? (Plain English)</a><a class="next" href="02-javascript-essentials.html"><small>Next</small>Lesson 2 — JavaScript Essentials</a></nav>
-<footer>Learn Node.js · Beginner Basics · Part 2 of 8 · Built with a light soft-UI docs theme.</footer>
-</main>
+rmdir test</code></pre><h4>Try this small exercise</h4><ol><li>Create a folder called <code class="inline">node-learning</code>.</li><li>Go into it.</li><li>Create a folder inside called <code class="inline">playground</code>.</li><li>Go into <code class="inline">playground</code>.</li><li>Run <code class="inline">pwd</code> to confirm where you are.</li></ol><p>You'll use <code class="inline">node-learning/</code> for every session in the main plan.</p></div>
+<div class="card" id="5-open-a-folder-in-vs-code-5-min"><h3><span class="tag">Concept</span> 5. Open a folder in VS Code (5 min)</h3><p>In VS Code: <code class="inline">File → Open Folder…</code> → pick your <code class="inline">node-learning</code> folder. Now the left sidebar shows your files, and the terminal at the bottom is already pointing at that folder. <strong>This is the setup you'll use for every session.</strong></p><hr></div>
+<div class="card" id="5-min-recap"><h3><span class="tag">Summary</span> 5-min recap</h3><ol><li>What does <code class="inline">cd</code> do? What about <code class="inline">ls</code>?</li><li>How do you check that Node is installed?</li><li>What's the difference between a "terminal" and an "editor"?</li><li>Where is your <code class="inline">node-learning/</code> folder on your machine?</li></ol><p>When you're done → <a href="02-javascript-essentials.html">02-javascript-essentials.md</a></p></div><div class="pager"><a class="prev" href="00-what-is-nodejs.html"><span class="dir">← Previous</span><span class="ttl">Lesson 0 — What is Node.js? (Plain English)</span></a><a class="next" href="02-javascript-essentials.html"><span class="dir">Next →</span><span class="ttl">Lesson 2 — JavaScript Essentials</span></a></div><footer>Learn Node.js · Beginner Basics · Part 2 of 8 · Built with a light soft-UI docs theme.</footer></main></div>
 <script>
 (function(){
   var BT = String.fromCharCode(96);
@@ -236,7 +136,7 @@ rmdir test</code></pre><h4>Try this small exercise</h4><ol><li>Create a folder c
     js: new Set(("const let var function return if else for while do switch case break continue "+
       "new class extends super this typeof instanceof in of try catch finally throw async await "+
       "yield import export default from as void delete null undefined true false NaN Infinity "+
-      "static get set require module exports process console global __dirname __filename "+
+      "static get set public private require module exports process console global __dirname __filename "+
       "Promise Array Object String Number Boolean Map Set JSON Math Date Symbol Buffer setTimeout "+
       "setInterval setImmediate fetch").split(" ")),
     bash: new Set(("npm npx node nvm cd ls mkdir rm rmdir git curl wget echo export cat touch pwd "+
@@ -247,10 +147,17 @@ rmdir test</code></pre><h4>Try this small exercise</h4><ol><li>Create a folder c
   function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
   function isIdStart(c){return /[A-Za-z_$]/.test(c);}
   function isId(c){return /[A-Za-z0-9_$]/.test(c);}
+  function norm(l){
+    if(l==="javascript"||l==="js"||l==="ts"||l==="typescript"||l==="jsx"||l==="mjs"||l==="cjs")return "js";
+    if(l==="sh"||l==="shell"||l==="bash"||l==="console"||l==="terminal"||l==="zsh"||l==="yaml"||l==="env")return "bash";
+    if(l==="json")return "json";
+    return "text";
+  }
   function highlight(code, lang){
-    if(lang==="text"){return '<span class="t-out">'+esc(code)+'</span>';}
-    var lineComment = (lang==="bash") ? "#" : "//";
-    var kw = KW[lang] || KW.text;
+    var L = norm(lang);
+    if(L==="text"){return '<span class="t-out">'+esc(code)+'</span>';}
+    var lineComment = (L==="bash") ? "#" : "//";
+    var kw = KW[L] || KW.text;
     var out=""; var i=0; var n=code.length;
     while(i<n){
       var c=code[i];
@@ -258,7 +165,7 @@ rmdir test</code></pre><h4>Try this small exercise</h4><ol><li>Create a folder c
         var j=code.indexOf("\n",i); if(j<0)j=n;
         out+='<span class="t-com">'+esc(code.slice(i,j))+'</span>'; i=j; continue;
       }
-      if(lang==="js" && c==="/" && code[i+1]==="*"){
+      if(L==="js" && c==="/" && code[i+1]==="*"){
         var e=code.indexOf("*/",i+2); e=(e<0)?n:e+2;
         out+='<span class="t-com">'+esc(code.slice(i,e))+'</span>'; i=e; continue;
       }
@@ -284,16 +191,12 @@ rmdir test</code></pre><h4>Try this small exercise</h4><ol><li>Create a folder c
     }
     return out;
   }
-  var labels={js:"JS",bash:"BASH",json:"JSON",text:"TEXT"};
   var blocks=document.querySelectorAll("pre > code[data-lang]");
   for(var b=0;b<blocks.length;b++){
     var el=blocks[b];
-    var lang=el.getAttribute("data-lang")||"text";
+    var lang=(el.getAttribute("data-lang")||"").toLowerCase();
     el.innerHTML=highlight(el.textContent, lang);
-    var chip=document.createElement("span");
-    chip.className="lang-chip";
-    chip.textContent=labels[lang]||lang.toUpperCase();
-    el.parentNode.appendChild(chip);
+    if(lang){ var chip=document.createElement("span"); chip.className="lang"; chip.textContent=lang; el.parentNode.appendChild(chip); }
   }
 })();
 </script>

@@ -5,204 +5,104 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Session 7 — Express.js: Routing, Middleware, REST APIs (2h) · Learn Node.js</title>
 <style>
-*{box-sizing:border-box}
 :root{
-  --page-bg:#eaf2fc; --card-bg:#ffffff; --accent:#1657c4; --accent-bright:#1f6fe0;
-  --accent-soft:#e3edfb; --ink:#16202e; --ink-soft:#44546a; --code-bg:#0b2a52;
-  --code-ink:#d6e4ff; --border:#d6e3f5; --green:#1f9d57; --red:#d6455a; --amber:#c98a12;
-  --shadow:0 8px 24px rgba(22,87,196,.08); --shadow-lg:0 16px 44px rgba(22,87,196,.14);
-  --t-key:#7cc4ff; --t-str:#9ff0c4; --t-num:#ffd479; --t-com:#6f8cb8; --t-fn:#d6a3ff; --t-out:#cdd9ee;
+  --page-bg:#eaf2fc;--card-bg:#ffffff;--accent:#1657c4;--accent-bright:#1f6fe0;
+  --accent-soft:#e3edfb;--ink:#16202e;--ink-soft:#44546a;--code-bg:#0b2a52;
+  --code-ink:#d6e4ff;--border:#d6e3f5;--green:#1f9d57;--red:#d6455a;--amber:#c98a12;
+  --shadow:0 8px 24px rgba(22,87,196,.08);--shadow-lg:0 16px 44px rgba(22,87,196,.14);
 }
-html{scroll-behavior:smooth}
-body{
-  margin:0; background:var(--page-bg); color:var(--ink);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-  line-height:1.65; font-size:16px; -webkit-font-smoothing:antialiased;
-}
-.wrap{max-width:1040px; margin:0 auto; padding:28px 20px 80px}
-a{color:var(--accent); text-decoration:none}
-a:hover{text-decoration:underline}
-
-/* HERO */
-.hero{
-  position:relative; overflow:hidden; border-radius:24px; color:#fff;
-  background:linear-gradient(135deg,#1f6fe0 0%,#1657c4 55%,#0e3f93 100%);
-  padding:38px 36px; box-shadow:var(--shadow-lg);
-}
-.hero::after{
-  content:""; position:absolute; top:-90px; right:-70px; width:280px; height:280px;
-  border-radius:50%; background:radial-gradient(circle at center,rgba(255,255,255,.30),rgba(255,255,255,0) 70%);
-}
-.eyebrow{
-  display:inline-block; text-transform:uppercase; letter-spacing:.14em; font-size:12px;
-  font-weight:700; background:rgba(255,255,255,.16); padding:6px 12px; border-radius:999px;
-  margin-bottom:14px;
-}
-.hero h1{margin:.1em 0 .25em; font-size:clamp(28px,5vw,46px); font-weight:800; line-height:1.1; letter-spacing:-.01em}
-.hero .lead{margin:0; max-width:62ch; font-size:clamp(15px,2.2vw,19px); color:#eaf2ffe6}
-.chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:18px}
-.chip{
-  background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.28);
-  color:#fff; padding:6px 13px; border-radius:999px; font-size:13.5px; font-weight:600;
-}
-
-/* SECTION BANNER */
-.banner{
-  display:flex; align-items:center; gap:16px; margin:34px 0 18px; padding:16px 18px;
-  border-radius:16px; background:linear-gradient(135deg,var(--accent-soft),#f3f8ff);
-  border:1px solid var(--border);
-}
-.num{
-  flex:0 0 auto; width:46px; height:46px; border-radius:13px; display:grid; place-items:center;
-  font-weight:800; font-size:19px; color:#fff;
-  background:linear-gradient(135deg,#1f6fe0,#1657c4); box-shadow:var(--shadow);
-}
-.banner h2{margin:0; font-size:21px; font-weight:800; letter-spacing:-.01em}
-.banner p{margin:2px 0 0; color:var(--ink-soft); font-size:14px}
-
-/* GRID + PCARDS */
-.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:18px}
-.pcard{
-  display:block; background:var(--card-bg); border:1px solid var(--border); border-radius:18px;
-  padding:20px 20px 18px; box-shadow:var(--shadow); color:inherit;
-  transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
-}
-.pcard:hover{transform:translateY(-3px); box-shadow:var(--shadow-lg); border-color:#b9d0f2; text-decoration:none}
-.pn{
-  display:inline-grid; place-items:center; width:34px; height:34px; border-radius:10px;
-  background:var(--accent-soft); color:var(--accent); font-weight:800; font-size:14px; margin-bottom:12px;
-}
-.pcard h3{margin:0 0 6px; font-size:17.5px; font-weight:750; display:flex; align-items:center; gap:8px}
-.pcard p{margin:0 0 14px; color:var(--ink-soft); font-size:14px; min-height:38px}
-.lvl{
-  display:inline-block; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:999px;
-  text-transform:uppercase; letter-spacing:.05em;
-}
-.lvl.beg{background:#e3f6ec; color:var(--green)}
-.lvl.int{background:#fef3da; color:var(--amber)}
-.lvl.adv{background:#fbe4e8; color:var(--red)}
-
-/* CRUMBS */
-.crumbs{margin:22px 0 8px; font-size:13.5px; color:var(--ink-soft)}
-.crumbs a{font-weight:600}
-.crumbs span{margin:0 8px; opacity:.6}
-
-/* CARD (lesson content) */
-.card{
-  background:var(--card-bg); border:1px solid var(--border); border-radius:18px;
-  padding:24px 26px; box-shadow:var(--shadow); margin:18px 0;
-}
-.card>h3:first-child,.card>h4:first-child{margin-top:0}
-.card h3{font-size:20px; font-weight:780; letter-spacing:-.01em; margin:.2em 0 .5em; display:flex; align-items:center; flex-wrap:wrap; gap:10px}
-.card h4{font-size:16.5px; font-weight:750; margin:1.1em 0 .4em}
-.card h5{font-size:15px; font-weight:700; margin:1em 0 .3em; color:var(--ink-soft)}
-.tag{
-  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
-  background:var(--accent-soft); color:var(--accent); padding:4px 10px; border-radius:999px;
-}
-.card p{margin:.6em 0}
-.card ul,.card ol{margin:.5em 0; padding-left:1.4em}
-.card li{margin:.3em 0}
-.card li::marker{color:var(--accent); font-weight:700}
-.card code{
-  background:#eef4fe; color:#0e3f93; padding:1px 6px; border-radius:6px; font-size:.92em;
-  font-family:"SF Mono","Fira Code","Cascadia Code",Consolas,monospace;
-}
-hr{border:none; border-top:1px solid var(--border); margin:1.4em 0}
-
-/* CALLOUTS */
-.callout{
-  display:flex; gap:12px; align-items:flex-start; border-radius:14px; padding:14px 16px;
-  margin:14px 0; border:1px solid var(--border); font-size:14.5px;
-}
-.callout .ico{font-size:18px; line-height:1.4}
-.callout.note{background:#eef4fe; border-color:#cfe0fa}
-.callout.tip{background:#e9f8ef; border-color:#c7ebd6}
-.callout.warn{background:#fdeef0; border-color:#f6cdd5}
-.callout code{background:rgba(255,255,255,.7)}
-
-/* CODE */
-pre{
-  position:relative; background:var(--code-bg); color:var(--code-ink); border-radius:14px;
-  padding:18px 18px 16px; overflow:auto; margin:14px 0; box-shadow:var(--shadow);
-  font-family:"SF Mono","Fira Code","Cascadia Code",Consolas,monospace; font-size:13.5px; line-height:1.6;
-}
-pre code{font-family:inherit; background:none; color:inherit; padding:0; white-space:pre}
-.lang-chip{
-  position:absolute; top:10px; right:12px; font-size:10.5px; font-weight:700; letter-spacing:.08em;
-  text-transform:uppercase; color:#9fc0ee; background:rgba(255,255,255,.07);
-  padding:3px 8px; border-radius:7px; pointer-events:none;
-}
-.t-key{color:var(--t-key)} .t-str{color:var(--t-str)} .t-num{color:var(--t-num)}
-.t-com{color:var(--t-com); font-style:italic} .t-fn{color:var(--t-fn)} .t-out{color:var(--t-out)}
-
-/* TABLE */
-.tablewrap{overflow-x:auto; margin:14px 0}
-table{border-collapse:collapse; width:100%; font-size:14px}
-th,td{border:1px solid var(--border); padding:9px 12px; text-align:left; vertical-align:top}
-th{background:var(--accent-soft); font-weight:700; color:var(--accent)}
-tbody tr:nth-child(even){background:#f6faff}
-
-/* DIAGRAM */
-.diagram{margin:16px 0; text-align:center}
-.diagram svg{max-width:100%; height:auto}
-.cap{font-size:13px; color:var(--ink-soft); margin-top:6px; text-align:center}
-
-/* SUMMARY checklist */
-.learned{list-style:none; padding-left:0}
-.learned li{position:relative; padding-left:28px; margin:.4em 0}
-.learned li::before{content:"✓"; position:absolute; left:0; top:0; color:var(--green); font-weight:800}
-
-/* PAGER */
-.pager{display:flex; justify-content:space-between; gap:14px; margin-top:30px}
-.pager a{
-  flex:1; background:var(--card-bg); border:1px solid var(--border); border-radius:14px;
-  padding:14px 18px; box-shadow:var(--shadow); font-weight:650;
-  transition:transform .15s ease, box-shadow .15s ease;
-}
-.pager a:hover{transform:translateY(-2px); box-shadow:var(--shadow-lg); text-decoration:none}
-.pager a.next{text-align:right}
-.pager a small{display:block; font-size:11.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-soft); font-weight:700}
-.pager a.disabled{opacity:.4; pointer-events:none}
-
-/* FOOTER */
-footer{margin-top:40px; padding-top:20px; border-top:1px solid var(--border); color:var(--ink-soft); font-size:13.5px; text-align:center}
-
-@media (max-width:760px){
-  .wrap{padding:18px 14px 60px}
-  .hero{padding:28px 22px; border-radius:20px}
-  .card{padding:20px 18px}
-  .grid{grid-template-columns:1fr}
-  .pager{flex-direction:column}
-  .pager a.next{text-align:left}
-}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  background:var(--page-bg);color:var(--ink);line-height:1.65;font-size:16px}
+.shell{display:grid;grid-template-columns:270px 1fr;max-width:1280px;margin:0 auto}
+.hub{max-width:1100px;margin:0 auto;padding:0 clamp(20px,4vw,48px) 80px}
+.sidebar{position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;padding:24px 16px 40px;border-right:1px solid var(--border)}
+.sidebar .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.02rem;color:var(--accent);margin-bottom:8px;padding-left:6px}
+.sidebar .brand .logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent-bright),var(--accent));display:grid;place-items:center;color:#fff;font-weight:800;font-size:.9rem;box-shadow:var(--shadow)}
+.sidebar .partlabel{font-size:.72rem;color:var(--ink-soft);padding-left:6px;margin-bottom:18px;font-weight:600}
+.nav-group-title{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);margin:16px 0 6px 6px;font-weight:700}
+.sidebar a{display:block;text-decoration:none;color:var(--ink-soft);padding:7px 12px;border-radius:8px;font-size:.9rem;transition:all .15s}
+.sidebar a:hover{background:var(--accent-soft);color:var(--accent)}
+.sidebar a.home{color:var(--accent);font-weight:700}
+.content{padding:0 clamp(20px,4vw,56px) 80px;min-width:0}
+.hero{margin:28px 0 30px;padding:44px 42px;border-radius:22px;background:linear-gradient(135deg,#1f6fe0 0%,#1657c4 55%,#0e3f93 100%);color:#fff;box-shadow:var(--shadow-lg);position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-60px;top:-60px;width:240px;height:240px;background:radial-gradient(circle,rgba(255,255,255,.18),transparent 70%);border-radius:50%}
+.hero .eyebrow{text-transform:uppercase;letter-spacing:.14em;font-size:.74rem;font-weight:700;opacity:.9}
+.hero h1{margin:12px 0 14px;font-size:clamp(1.7rem,3.6vw,2.5rem);line-height:1.15;font-weight:800}
+.hero p{margin:0;max-width:660px;font-size:1.04rem;opacity:.95}
+.hero .chips{margin-top:20px;display:flex;flex-wrap:wrap;gap:10px}
+.hero .chips span{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);padding:6px 14px;border-radius:999px;font-size:.82rem;font-weight:600}
+.crumbs{display:flex;gap:8px;align-items:center;font-size:.85rem;margin:24px 0 0;color:var(--ink-soft);flex-wrap:wrap}
+.crumbs a{color:var(--accent);text-decoration:none}
+.section-banner{margin:42px 0 22px;padding:22px 26px;border-radius:16px;background:linear-gradient(120deg,var(--accent-soft),#f3f8ff);border:1px solid var(--border);border-left:5px solid var(--accent-bright);display:flex;align-items:center;gap:16px}
+.section-banner .num{flex:0 0 auto;width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,var(--accent-bright),var(--accent));color:#fff;display:grid;place-items:center;font-weight:800;font-size:1.2rem;box-shadow:var(--shadow)}
+.section-banner h2{margin:0;font-size:1.45rem;color:var(--accent);font-weight:800}
+.section-banner p{margin:4px 0 0;color:var(--ink-soft);font-size:.92rem}
+.card{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:24px 28px;margin:18px 0;box-shadow:var(--shadow);scroll-margin-top:20px}
+.card h3{margin:0 0 12px;font-size:1.16rem;color:var(--ink);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.card h3 .tag{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;background:var(--accent-soft);color:var(--accent);padding:3px 9px;border-radius:6px}
+.card h4{margin:20px 0 8px;font-size:1.0rem;color:var(--accent)}
+.card h5{margin:16px 0 6px;font-size:.94rem;color:var(--ink-soft)}
+.card p{margin:8px 0}.card ul,.card ol{margin:8px 0;padding-left:22px}.card li{margin:5px 0}
+.card li::marker{color:var(--accent)}
+.lead{color:var(--ink-soft)}
+pre{background:var(--code-bg);color:var(--code-ink);border-radius:12px;padding:18px 20px;overflow-x:auto;font-size:.88rem;line-height:1.6;margin:14px 0;border:1px solid #123a6b;box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 6px 18px rgba(11,42,82,.25);position:relative}
+pre code{font-family:"SF Mono","Fira Code","Cascadia Code",Consolas,monospace;white-space:pre;background:none;color:inherit;padding:0}
+pre .lang{position:absolute;top:0;right:0;background:#123a6b;color:#8fb6f0;font-size:.66rem;font-weight:700;letter-spacing:.06em;padding:3px 10px;border-radius:0 12px 0 10px;text-transform:uppercase;pointer-events:none}
+.t-key{color:#6db3ff}.t-str{color:#7fe0a8}.t-num{color:#f3b05a}.t-com{color:#6b86ad;font-style:italic}.t-fn{color:#c79bff}.t-out{color:#9fd0ff}
+code.inline{background:var(--accent-soft);color:var(--accent);padding:2px 7px;border-radius:6px;font-family:"SF Mono",Consolas,monospace;font-size:.86em;font-weight:600}
+.callout{border-radius:12px;padding:14px 18px;margin:16px 0;display:flex;gap:12px;align-items:flex-start;font-size:.94rem}
+.callout .ico{flex:0 0 auto;font-size:1.15rem;line-height:1.5}
+.callout.note{background:#eef5ff;border:1px solid #cfe0fb;color:#214a87}
+.callout.tip{background:#ecfaf1;border:1px solid #c2ebd2;color:#166c3c}
+.callout.warn{background:#fff6e8;border:1px solid #f3dcae;color:#8a5a08}
+.callout code.inline{background:rgba(255,255,255,.6)}
+.tablewrap{overflow-x:auto;margin:14px 0}
+table{width:100%;border-collapse:collapse;margin:0;font-size:.92rem;border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
+th{background:var(--accent);color:#fff;text-align:left;padding:11px 16px;font-weight:700}
+td{padding:10px 16px;border-bottom:1px solid var(--border);background:#fff}
+tr:last-child td{border-bottom:none}tr:nth-child(even) td{background:#f6faff}
+.diagram{margin:18px 0;padding:22px;background:linear-gradient(180deg,#f7fbff,#fff);border:1px dashed #c4d8f5;border-radius:14px;text-align:center}
+.diagram .cap{font-size:.82rem;color:var(--ink-soft);margin-top:10px;font-style:italic}
+svg{max-width:100%;height:auto}
+.learned{list-style:none;padding:0;margin:10px 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}
+.learned li{background:#ecfaf1;border:1px solid #c2ebd2;color:#166c3c;padding:9px 14px;border-radius:9px;font-size:.88rem;font-weight:600}
+.learned li::before{content:"✔  ";color:var(--green);font-weight:800}
+.pager{display:flex;justify-content:space-between;gap:14px;margin-top:40px}
+.pager a{flex:1;text-decoration:none;border:1px solid var(--border);border-radius:14px;padding:16px 20px;background:#fff;box-shadow:var(--shadow);transition:all .15s}
+.pager a:hover{border-color:var(--accent-bright);transform:translateY(-2px)}
+.pager .dir{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);font-weight:700}
+.pager .ttl{display:block;margin-top:4px;color:var(--accent);font-weight:700;font-size:.95rem}
+.pager a.next{text-align:right}.pager a.disabled{opacity:.4;pointer-events:none}
+footer{margin-top:50px;padding:28px;text-align:center;color:var(--ink-soft);border-top:1px solid var(--border);font-size:.88rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;margin-top:8px}
+.pcard{display:block;text-decoration:none;background:#fff;border:1px solid var(--border);border-radius:16px;padding:22px;box-shadow:var(--shadow);transition:all .18s;position:relative;overflow:hidden}
+.pcard:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--accent-bright)}
+.pcard .pn{width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,var(--accent-bright),var(--accent));color:#fff;display:grid;place-items:center;font-weight:800;font-size:1.05rem;box-shadow:var(--shadow);margin-bottom:12px}
+.pcard h3{margin:0 0 6px;color:var(--ink);font-size:1.05rem}
+.pcard p{margin:0;color:var(--ink-soft);font-size:.88rem}
+.pcard .lvl{display:inline-block;margin-top:12px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;border-radius:6px}
+.lvl.beg{background:#ecfaf1;color:#166c3c}.lvl.int{background:#eef5ff;color:#214a87}.lvl.adv{background:#fdeef0;color:#a62f43}
+@media(max-width:920px){.shell{grid-template-columns:1fr}.sidebar{display:none}}
+@media(max-width:560px){.hero{padding:34px 26px}.card{padding:20px 18px}.pager{flex-direction:column}.pager a.next{text-align:left}}
 </style>
 </head>
 <body>
-<main class="wrap">
-<header class="hero">
-  <span class="eyebrow">20-Hour Learning Plan</span>
-  <h1>Session 7 — Express.js: Routing, Middleware, REST APIs (2h)</h1>
-  <p class="lead"><strong>Goal:</strong> Build a clean REST API with Express.</p>
-  
-</header>
-<nav class="crumbs" aria-label="Breadcrumb">
-  <a href="../index.html">Learn Node.js</a><span>/</span>
-  <a href="index.html">20-Hour Learning Plan</a><span>/</span>Session 7 — Express.js: Routing, Middleware, REST APIs (2h)
-</nav>
-<section class="card"><h3>Why this matters (80/20) <span class="tag">Why it matters</span></h3><p>Express is the de facto Node web framework. Knowing routing + middleware = you can build 80% of backend APIs.</p><hr></section>
-<section class="card"><h3>Plan <span class="tag">Plan</span></h3><h4>0–15 min — Warm-up</h4><ul><li>Read: <a href="https://expressjs.com/en/starter/hello-world.html" target="_blank" rel="noopener noreferrer">Express Hello World</a></li><li>Read: <a href="https://expressjs.com/en/guide/using-middleware.html" target="_blank" rel="noopener noreferrer">Using middleware</a></li></ul><h4>15–90 min — Core Hands-on</h4><ol><li><code>npm install express</code></li><li><strong>Hello Express:</strong></li></ol><pre><code data-lang="js">   const express = require("express");
+<div class="shell"><aside class="sidebar">
+<div class="brand"><span class="logo">🚀</span> Learn Node.js</div>
+<div class="partlabel">20-Hour Learning Plan · Part 7 of 10</div>
+<a class="home" href="../index.html">← All lessons</a>
+<div class="nav-group-title">On this page</div><a href="#why-this-matters-80-20">Why this matters (80/20)</a><a href="#plan">Plan</a><a href="#resources">Resources</a>
+</aside><main class="content"><div class="crumbs"><a href="../index.html">Learn Node.js</a> › <a href="index.html">20-Hour Learning Plan</a> › <span>Session 7 — Express.js: Routing, Middleware, REST APIs (2h)</span></div><header class="hero"><div class="eyebrow">Part 7 of 10 · 20-Hour Learning Plan</div><h1>Session 7 — Express.js: Routing, Middleware, REST APIs (2h)</h1><p><strong>Goal:</strong> Build a clean REST API with Express.</p></header><div class="card" id="why-this-matters-80-20"><h3><span class="tag">Why it matters</span> Why this matters (80/20)</h3><p>Express is the de facto Node web framework. Knowing routing + middleware = you can build 80% of backend APIs.</p><hr></div>
+<div class="card" id="plan"><h3><span class="tag">Plan</span> Plan</h3><h4>0–15 min — Warm-up</h4><ul><li>Read: <a href="https://expressjs.com/en/starter/hello-world.html" target="_blank" rel="noopener noreferrer">Express Hello World</a></li><li>Read: <a href="https://expressjs.com/en/guide/using-middleware.html" target="_blank" rel="noopener noreferrer">Using middleware</a></li></ul><h4>15–90 min — Core Hands-on</h4><ol><li><code class="inline">npm install express</code></li><li><strong>Hello Express:</strong></li></ol><pre><code data-lang="javascript">   const express = require("express");
    const app = express();
    app.use(express.json());
    app.get("/", (req, res) =&gt; res.send("Hello"));
-   app.listen(3000);</code></pre><ol><li><strong>Routes:</strong> <code>GET/POST/PUT/DELETE</code>, route params <code>/users/:id</code>, query <code>req.query</code>.</li><li><strong>Middleware pipeline:</strong> logging middleware, auth middleware, error-handling middleware (<code>(err, req, res, next)</code>).</li><li><strong>Router modularization:</strong></li></ol><pre><code data-lang="js">   // routes/users.js
+   app.listen(3000);</code></pre><ol><li><strong>Routes:</strong> <code class="inline">GET/POST/PUT/DELETE</code>, route params <code class="inline">/users/:id</code>, query <code class="inline">req.query</code>.</li><li><strong>Middleware pipeline:</strong> logging middleware, auth middleware, error-handling middleware (<code class="inline">(err, req, res, next)</code>).</li><li><strong>Router modularization:</strong></li></ol><pre><code data-lang="javascript">   // routes/users.js
    const router = require("express").Router();
    router.get("/", ...); router.post("/", ...);
-   module.exports = router;</code></pre><pre><code data-lang="js">   app.use("/api/users", require("./routes/users"));</code></pre><ol><li><strong>Project layout:</strong> <code>controllers/</code>, <code>routes/</code>, <code>middleware/</code>, <code>services/</code>.</li><li><strong>Environment variables:</strong> <code>npm i dotenv</code> → <code>require("dotenv").config()</code>.</li></ol><h4>90–105 min — Mini-challenge</h4><p>Rebuild the Session 6 todo API in Express with proper routes, JSON middleware, and a centralized error handler. Test with Thunder Client.</p><h4>105–120 min — 15-min Review</h4><ul><li>The middleware contract: <code>(req, res, next)</code>. What happens if you forget <code>next()</code>?</li><li>REST conventions: which verb for what action?</li><li>Commit.</li></ul><hr></section>
-<section class="card"><h3>Resources <span class="tag">Resources</span></h3><ul><li>https://expressjs.com</li><li>Video: <em>Express JS Crash Course</em> — Traversy Media</li><li>Tutorial: https://www.theodinproject.com/paths/full-stack-javascript/courses/nodejs</li></ul></section>
-<nav class="pager" aria-label="Lesson navigation"><a class="prev" href="session-06-http.html"><small>Previous</small>Session 6 — HTTP Module &amp; Building a Web Server (2h)</a><a class="next" href="session-08-database.html"><small>Next</small>Session 8 — Databases with MongoDB + Mongoose (2h)</a></nav>
-<footer>Learn Node.js · 20-Hour Learning Plan · Part 7 of 10 · Built with a light soft-UI docs theme.</footer>
-</main>
+   module.exports = router;</code></pre><pre><code data-lang="javascript">   app.use("/api/users", require("./routes/users"));</code></pre><ol><li><strong>Project layout:</strong> <code class="inline">controllers/</code>, <code class="inline">routes/</code>, <code class="inline">middleware/</code>, <code class="inline">services/</code>.</li><li><strong>Environment variables:</strong> <code class="inline">npm i dotenv</code> → <code class="inline">require("dotenv").config()</code>.</li></ol><h4>90–105 min — Mini-challenge</h4><p>Rebuild the Session 6 todo API in Express with proper routes, JSON middleware, and a centralized error handler. Test with Thunder Client.</p><h4>105–120 min — 15-min Review</h4><ul><li>The middleware contract: <code class="inline">(req, res, next)</code>. What happens if you forget <code class="inline">next()</code>?</li><li>REST conventions: which verb for what action?</li><li>Commit.</li></ul><hr></div>
+<div class="card" id="resources"><h3><span class="tag">Resources</span> Resources</h3><ul><li>https://expressjs.com</li><li>Video: <em>Express JS Crash Course</em> — Traversy Media</li><li>Tutorial: https://www.theodinproject.com/paths/full-stack-javascript/courses/nodejs</li></ul></div><div class="pager"><a class="prev" href="session-06-http.html"><span class="dir">← Previous</span><span class="ttl">Session 6 — HTTP Module &amp; Building a Web Server (2h)</span></a><a class="next" href="session-08-database.html"><span class="dir">Next →</span><span class="ttl">Session 8 — Databases with MongoDB + Mongoose (2h)</span></a></div><footer>Learn Node.js · 20-Hour Learning Plan · Part 7 of 10 · Built with a light soft-UI docs theme.</footer></main></div>
 <script>
 (function(){
   var BT = String.fromCharCode(96);
@@ -210,7 +110,7 @@ footer{margin-top:40px; padding-top:20px; border-top:1px solid var(--border); co
     js: new Set(("const let var function return if else for while do switch case break continue "+
       "new class extends super this typeof instanceof in of try catch finally throw async await "+
       "yield import export default from as void delete null undefined true false NaN Infinity "+
-      "static get set require module exports process console global __dirname __filename "+
+      "static get set public private require module exports process console global __dirname __filename "+
       "Promise Array Object String Number Boolean Map Set JSON Math Date Symbol Buffer setTimeout "+
       "setInterval setImmediate fetch").split(" ")),
     bash: new Set(("npm npx node nvm cd ls mkdir rm rmdir git curl wget echo export cat touch pwd "+
@@ -221,10 +121,17 @@ footer{margin-top:40px; padding-top:20px; border-top:1px solid var(--border); co
   function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
   function isIdStart(c){return /[A-Za-z_$]/.test(c);}
   function isId(c){return /[A-Za-z0-9_$]/.test(c);}
+  function norm(l){
+    if(l==="javascript"||l==="js"||l==="ts"||l==="typescript"||l==="jsx"||l==="mjs"||l==="cjs")return "js";
+    if(l==="sh"||l==="shell"||l==="bash"||l==="console"||l==="terminal"||l==="zsh"||l==="yaml"||l==="env")return "bash";
+    if(l==="json")return "json";
+    return "text";
+  }
   function highlight(code, lang){
-    if(lang==="text"){return '<span class="t-out">'+esc(code)+'</span>';}
-    var lineComment = (lang==="bash") ? "#" : "//";
-    var kw = KW[lang] || KW.text;
+    var L = norm(lang);
+    if(L==="text"){return '<span class="t-out">'+esc(code)+'</span>';}
+    var lineComment = (L==="bash") ? "#" : "//";
+    var kw = KW[L] || KW.text;
     var out=""; var i=0; var n=code.length;
     while(i<n){
       var c=code[i];
@@ -232,7 +139,7 @@ footer{margin-top:40px; padding-top:20px; border-top:1px solid var(--border); co
         var j=code.indexOf("\n",i); if(j<0)j=n;
         out+='<span class="t-com">'+esc(code.slice(i,j))+'</span>'; i=j; continue;
       }
-      if(lang==="js" && c==="/" && code[i+1]==="*"){
+      if(L==="js" && c==="/" && code[i+1]==="*"){
         var e=code.indexOf("*/",i+2); e=(e<0)?n:e+2;
         out+='<span class="t-com">'+esc(code.slice(i,e))+'</span>'; i=e; continue;
       }
@@ -258,16 +165,12 @@ footer{margin-top:40px; padding-top:20px; border-top:1px solid var(--border); co
     }
     return out;
   }
-  var labels={js:"JS",bash:"BASH",json:"JSON",text:"TEXT"};
   var blocks=document.querySelectorAll("pre > code[data-lang]");
   for(var b=0;b<blocks.length;b++){
     var el=blocks[b];
-    var lang=el.getAttribute("data-lang")||"text";
+    var lang=(el.getAttribute("data-lang")||"").toLowerCase();
     el.innerHTML=highlight(el.textContent, lang);
-    var chip=document.createElement("span");
-    chip.className="lang-chip";
-    chip.textContent=labels[lang]||lang.toUpperCase();
-    el.parentNode.appendChild(chip);
+    if(lang){ var chip=document.createElement("span"); chip.className="lang"; chip.textContent=lang; el.parentNode.appendChild(chip); }
   }
 })();
 </script>

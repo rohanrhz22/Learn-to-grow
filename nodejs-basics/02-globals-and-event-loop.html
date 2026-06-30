@@ -5,193 +5,96 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lesson 2 — Globals, `process` & the Event Loop (Gently) · Learn Node.js</title>
 <style>
-*{box-sizing:border-box}
 :root{
-  --page-bg:#eaf2fc; --card-bg:#ffffff; --accent:#1657c4; --accent-bright:#1f6fe0;
-  --accent-soft:#e3edfb; --ink:#16202e; --ink-soft:#44546a; --code-bg:#0b2a52;
-  --code-ink:#d6e4ff; --border:#d6e3f5; --green:#1f9d57; --red:#d6455a; --amber:#c98a12;
-  --shadow:0 8px 24px rgba(22,87,196,.08); --shadow-lg:0 16px 44px rgba(22,87,196,.14);
-  --t-key:#7cc4ff; --t-str:#9ff0c4; --t-num:#ffd479; --t-com:#6f8cb8; --t-fn:#d6a3ff; --t-out:#cdd9ee;
+  --page-bg:#eaf2fc;--card-bg:#ffffff;--accent:#1657c4;--accent-bright:#1f6fe0;
+  --accent-soft:#e3edfb;--ink:#16202e;--ink-soft:#44546a;--code-bg:#0b2a52;
+  --code-ink:#d6e4ff;--border:#d6e3f5;--green:#1f9d57;--red:#d6455a;--amber:#c98a12;
+  --shadow:0 8px 24px rgba(22,87,196,.08);--shadow-lg:0 16px 44px rgba(22,87,196,.14);
 }
-html{scroll-behavior:smooth}
-body{
-  margin:0; background:var(--page-bg); color:var(--ink);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-  line-height:1.65; font-size:16px; -webkit-font-smoothing:antialiased;
-}
-.wrap{max-width:1040px; margin:0 auto; padding:28px 20px 80px}
-a{color:var(--accent); text-decoration:none}
-a:hover{text-decoration:underline}
-
-/* HERO */
-.hero{
-  position:relative; overflow:hidden; border-radius:24px; color:#fff;
-  background:linear-gradient(135deg,#1f6fe0 0%,#1657c4 55%,#0e3f93 100%);
-  padding:38px 36px; box-shadow:var(--shadow-lg);
-}
-.hero::after{
-  content:""; position:absolute; top:-90px; right:-70px; width:280px; height:280px;
-  border-radius:50%; background:radial-gradient(circle at center,rgba(255,255,255,.30),rgba(255,255,255,0) 70%);
-}
-.eyebrow{
-  display:inline-block; text-transform:uppercase; letter-spacing:.14em; font-size:12px;
-  font-weight:700; background:rgba(255,255,255,.16); padding:6px 12px; border-radius:999px;
-  margin-bottom:14px;
-}
-.hero h1{margin:.1em 0 .25em; font-size:clamp(28px,5vw,46px); font-weight:800; line-height:1.1; letter-spacing:-.01em}
-.hero .lead{margin:0; max-width:62ch; font-size:clamp(15px,2.2vw,19px); color:#eaf2ffe6}
-.chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:18px}
-.chip{
-  background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.28);
-  color:#fff; padding:6px 13px; border-radius:999px; font-size:13.5px; font-weight:600;
-}
-
-/* SECTION BANNER */
-.banner{
-  display:flex; align-items:center; gap:16px; margin:34px 0 18px; padding:16px 18px;
-  border-radius:16px; background:linear-gradient(135deg,var(--accent-soft),#f3f8ff);
-  border:1px solid var(--border);
-}
-.num{
-  flex:0 0 auto; width:46px; height:46px; border-radius:13px; display:grid; place-items:center;
-  font-weight:800; font-size:19px; color:#fff;
-  background:linear-gradient(135deg,#1f6fe0,#1657c4); box-shadow:var(--shadow);
-}
-.banner h2{margin:0; font-size:21px; font-weight:800; letter-spacing:-.01em}
-.banner p{margin:2px 0 0; color:var(--ink-soft); font-size:14px}
-
-/* GRID + PCARDS */
-.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:18px}
-.pcard{
-  display:block; background:var(--card-bg); border:1px solid var(--border); border-radius:18px;
-  padding:20px 20px 18px; box-shadow:var(--shadow); color:inherit;
-  transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
-}
-.pcard:hover{transform:translateY(-3px); box-shadow:var(--shadow-lg); border-color:#b9d0f2; text-decoration:none}
-.pn{
-  display:inline-grid; place-items:center; width:34px; height:34px; border-radius:10px;
-  background:var(--accent-soft); color:var(--accent); font-weight:800; font-size:14px; margin-bottom:12px;
-}
-.pcard h3{margin:0 0 6px; font-size:17.5px; font-weight:750; display:flex; align-items:center; gap:8px}
-.pcard p{margin:0 0 14px; color:var(--ink-soft); font-size:14px; min-height:38px}
-.lvl{
-  display:inline-block; font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:999px;
-  text-transform:uppercase; letter-spacing:.05em;
-}
-.lvl.beg{background:#e3f6ec; color:var(--green)}
-.lvl.int{background:#fef3da; color:var(--amber)}
-.lvl.adv{background:#fbe4e8; color:var(--red)}
-
-/* CRUMBS */
-.crumbs{margin:22px 0 8px; font-size:13.5px; color:var(--ink-soft)}
-.crumbs a{font-weight:600}
-.crumbs span{margin:0 8px; opacity:.6}
-
-/* CARD (lesson content) */
-.card{
-  background:var(--card-bg); border:1px solid var(--border); border-radius:18px;
-  padding:24px 26px; box-shadow:var(--shadow); margin:18px 0;
-}
-.card>h3:first-child,.card>h4:first-child{margin-top:0}
-.card h3{font-size:20px; font-weight:780; letter-spacing:-.01em; margin:.2em 0 .5em; display:flex; align-items:center; flex-wrap:wrap; gap:10px}
-.card h4{font-size:16.5px; font-weight:750; margin:1.1em 0 .4em}
-.card h5{font-size:15px; font-weight:700; margin:1em 0 .3em; color:var(--ink-soft)}
-.tag{
-  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
-  background:var(--accent-soft); color:var(--accent); padding:4px 10px; border-radius:999px;
-}
-.card p{margin:.6em 0}
-.card ul,.card ol{margin:.5em 0; padding-left:1.4em}
-.card li{margin:.3em 0}
-.card li::marker{color:var(--accent); font-weight:700}
-.card code{
-  background:#eef4fe; color:#0e3f93; padding:1px 6px; border-radius:6px; font-size:.92em;
-  font-family:"SF Mono","Fira Code","Cascadia Code",Consolas,monospace;
-}
-hr{border:none; border-top:1px solid var(--border); margin:1.4em 0}
-
-/* CALLOUTS */
-.callout{
-  display:flex; gap:12px; align-items:flex-start; border-radius:14px; padding:14px 16px;
-  margin:14px 0; border:1px solid var(--border); font-size:14.5px;
-}
-.callout .ico{font-size:18px; line-height:1.4}
-.callout.note{background:#eef4fe; border-color:#cfe0fa}
-.callout.tip{background:#e9f8ef; border-color:#c7ebd6}
-.callout.warn{background:#fdeef0; border-color:#f6cdd5}
-.callout code{background:rgba(255,255,255,.7)}
-
-/* CODE */
-pre{
-  position:relative; background:var(--code-bg); color:var(--code-ink); border-radius:14px;
-  padding:18px 18px 16px; overflow:auto; margin:14px 0; box-shadow:var(--shadow);
-  font-family:"SF Mono","Fira Code","Cascadia Code",Consolas,monospace; font-size:13.5px; line-height:1.6;
-}
-pre code{font-family:inherit; background:none; color:inherit; padding:0; white-space:pre}
-.lang-chip{
-  position:absolute; top:10px; right:12px; font-size:10.5px; font-weight:700; letter-spacing:.08em;
-  text-transform:uppercase; color:#9fc0ee; background:rgba(255,255,255,.07);
-  padding:3px 8px; border-radius:7px; pointer-events:none;
-}
-.t-key{color:var(--t-key)} .t-str{color:var(--t-str)} .t-num{color:var(--t-num)}
-.t-com{color:var(--t-com); font-style:italic} .t-fn{color:var(--t-fn)} .t-out{color:var(--t-out)}
-
-/* TABLE */
-.tablewrap{overflow-x:auto; margin:14px 0}
-table{border-collapse:collapse; width:100%; font-size:14px}
-th,td{border:1px solid var(--border); padding:9px 12px; text-align:left; vertical-align:top}
-th{background:var(--accent-soft); font-weight:700; color:var(--accent)}
-tbody tr:nth-child(even){background:#f6faff}
-
-/* DIAGRAM */
-.diagram{margin:16px 0; text-align:center}
-.diagram svg{max-width:100%; height:auto}
-.cap{font-size:13px; color:var(--ink-soft); margin-top:6px; text-align:center}
-
-/* SUMMARY checklist */
-.learned{list-style:none; padding-left:0}
-.learned li{position:relative; padding-left:28px; margin:.4em 0}
-.learned li::before{content:"✓"; position:absolute; left:0; top:0; color:var(--green); font-weight:800}
-
-/* PAGER */
-.pager{display:flex; justify-content:space-between; gap:14px; margin-top:30px}
-.pager a{
-  flex:1; background:var(--card-bg); border:1px solid var(--border); border-radius:14px;
-  padding:14px 18px; box-shadow:var(--shadow); font-weight:650;
-  transition:transform .15s ease, box-shadow .15s ease;
-}
-.pager a:hover{transform:translateY(-2px); box-shadow:var(--shadow-lg); text-decoration:none}
-.pager a.next{text-align:right}
-.pager a small{display:block; font-size:11.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-soft); font-weight:700}
-.pager a.disabled{opacity:.4; pointer-events:none}
-
-/* FOOTER */
-footer{margin-top:40px; padding-top:20px; border-top:1px solid var(--border); color:var(--ink-soft); font-size:13.5px; text-align:center}
-
-@media (max-width:760px){
-  .wrap{padding:18px 14px 60px}
-  .hero{padding:28px 22px; border-radius:20px}
-  .card{padding:20px 18px}
-  .grid{grid-template-columns:1fr}
-  .pager{flex-direction:column}
-  .pager a.next{text-align:left}
-}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  background:var(--page-bg);color:var(--ink);line-height:1.65;font-size:16px}
+.shell{display:grid;grid-template-columns:270px 1fr;max-width:1280px;margin:0 auto}
+.hub{max-width:1100px;margin:0 auto;padding:0 clamp(20px,4vw,48px) 80px}
+.sidebar{position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;padding:24px 16px 40px;border-right:1px solid var(--border)}
+.sidebar .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.02rem;color:var(--accent);margin-bottom:8px;padding-left:6px}
+.sidebar .brand .logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent-bright),var(--accent));display:grid;place-items:center;color:#fff;font-weight:800;font-size:.9rem;box-shadow:var(--shadow)}
+.sidebar .partlabel{font-size:.72rem;color:var(--ink-soft);padding-left:6px;margin-bottom:18px;font-weight:600}
+.nav-group-title{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);margin:16px 0 6px 6px;font-weight:700}
+.sidebar a{display:block;text-decoration:none;color:var(--ink-soft);padding:7px 12px;border-radius:8px;font-size:.9rem;transition:all .15s}
+.sidebar a:hover{background:var(--accent-soft);color:var(--accent)}
+.sidebar a.home{color:var(--accent);font-weight:700}
+.content{padding:0 clamp(20px,4vw,56px) 80px;min-width:0}
+.hero{margin:28px 0 30px;padding:44px 42px;border-radius:22px;background:linear-gradient(135deg,#1f6fe0 0%,#1657c4 55%,#0e3f93 100%);color:#fff;box-shadow:var(--shadow-lg);position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-60px;top:-60px;width:240px;height:240px;background:radial-gradient(circle,rgba(255,255,255,.18),transparent 70%);border-radius:50%}
+.hero .eyebrow{text-transform:uppercase;letter-spacing:.14em;font-size:.74rem;font-weight:700;opacity:.9}
+.hero h1{margin:12px 0 14px;font-size:clamp(1.7rem,3.6vw,2.5rem);line-height:1.15;font-weight:800}
+.hero p{margin:0;max-width:660px;font-size:1.04rem;opacity:.95}
+.hero .chips{margin-top:20px;display:flex;flex-wrap:wrap;gap:10px}
+.hero .chips span{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);padding:6px 14px;border-radius:999px;font-size:.82rem;font-weight:600}
+.crumbs{display:flex;gap:8px;align-items:center;font-size:.85rem;margin:24px 0 0;color:var(--ink-soft);flex-wrap:wrap}
+.crumbs a{color:var(--accent);text-decoration:none}
+.section-banner{margin:42px 0 22px;padding:22px 26px;border-radius:16px;background:linear-gradient(120deg,var(--accent-soft),#f3f8ff);border:1px solid var(--border);border-left:5px solid var(--accent-bright);display:flex;align-items:center;gap:16px}
+.section-banner .num{flex:0 0 auto;width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,var(--accent-bright),var(--accent));color:#fff;display:grid;place-items:center;font-weight:800;font-size:1.2rem;box-shadow:var(--shadow)}
+.section-banner h2{margin:0;font-size:1.45rem;color:var(--accent);font-weight:800}
+.section-banner p{margin:4px 0 0;color:var(--ink-soft);font-size:.92rem}
+.card{background:var(--card-bg);border:1px solid var(--border);border-radius:16px;padding:24px 28px;margin:18px 0;box-shadow:var(--shadow);scroll-margin-top:20px}
+.card h3{margin:0 0 12px;font-size:1.16rem;color:var(--ink);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.card h3 .tag{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;background:var(--accent-soft);color:var(--accent);padding:3px 9px;border-radius:6px}
+.card h4{margin:20px 0 8px;font-size:1.0rem;color:var(--accent)}
+.card h5{margin:16px 0 6px;font-size:.94rem;color:var(--ink-soft)}
+.card p{margin:8px 0}.card ul,.card ol{margin:8px 0;padding-left:22px}.card li{margin:5px 0}
+.card li::marker{color:var(--accent)}
+.lead{color:var(--ink-soft)}
+pre{background:var(--code-bg);color:var(--code-ink);border-radius:12px;padding:18px 20px;overflow-x:auto;font-size:.88rem;line-height:1.6;margin:14px 0;border:1px solid #123a6b;box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 6px 18px rgba(11,42,82,.25);position:relative}
+pre code{font-family:"SF Mono","Fira Code","Cascadia Code",Consolas,monospace;white-space:pre;background:none;color:inherit;padding:0}
+pre .lang{position:absolute;top:0;right:0;background:#123a6b;color:#8fb6f0;font-size:.66rem;font-weight:700;letter-spacing:.06em;padding:3px 10px;border-radius:0 12px 0 10px;text-transform:uppercase;pointer-events:none}
+.t-key{color:#6db3ff}.t-str{color:#7fe0a8}.t-num{color:#f3b05a}.t-com{color:#6b86ad;font-style:italic}.t-fn{color:#c79bff}.t-out{color:#9fd0ff}
+code.inline{background:var(--accent-soft);color:var(--accent);padding:2px 7px;border-radius:6px;font-family:"SF Mono",Consolas,monospace;font-size:.86em;font-weight:600}
+.callout{border-radius:12px;padding:14px 18px;margin:16px 0;display:flex;gap:12px;align-items:flex-start;font-size:.94rem}
+.callout .ico{flex:0 0 auto;font-size:1.15rem;line-height:1.5}
+.callout.note{background:#eef5ff;border:1px solid #cfe0fb;color:#214a87}
+.callout.tip{background:#ecfaf1;border:1px solid #c2ebd2;color:#166c3c}
+.callout.warn{background:#fff6e8;border:1px solid #f3dcae;color:#8a5a08}
+.callout code.inline{background:rgba(255,255,255,.6)}
+.tablewrap{overflow-x:auto;margin:14px 0}
+table{width:100%;border-collapse:collapse;margin:0;font-size:.92rem;border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
+th{background:var(--accent);color:#fff;text-align:left;padding:11px 16px;font-weight:700}
+td{padding:10px 16px;border-bottom:1px solid var(--border);background:#fff}
+tr:last-child td{border-bottom:none}tr:nth-child(even) td{background:#f6faff}
+.diagram{margin:18px 0;padding:22px;background:linear-gradient(180deg,#f7fbff,#fff);border:1px dashed #c4d8f5;border-radius:14px;text-align:center}
+.diagram .cap{font-size:.82rem;color:var(--ink-soft);margin-top:10px;font-style:italic}
+svg{max-width:100%;height:auto}
+.learned{list-style:none;padding:0;margin:10px 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}
+.learned li{background:#ecfaf1;border:1px solid #c2ebd2;color:#166c3c;padding:9px 14px;border-radius:9px;font-size:.88rem;font-weight:600}
+.learned li::before{content:"✔  ";color:var(--green);font-weight:800}
+.pager{display:flex;justify-content:space-between;gap:14px;margin-top:40px}
+.pager a{flex:1;text-decoration:none;border:1px solid var(--border);border-radius:14px;padding:16px 20px;background:#fff;box-shadow:var(--shadow);transition:all .15s}
+.pager a:hover{border-color:var(--accent-bright);transform:translateY(-2px)}
+.pager .dir{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);font-weight:700}
+.pager .ttl{display:block;margin-top:4px;color:var(--accent);font-weight:700;font-size:.95rem}
+.pager a.next{text-align:right}.pager a.disabled{opacity:.4;pointer-events:none}
+footer{margin-top:50px;padding:28px;text-align:center;color:var(--ink-soft);border-top:1px solid var(--border);font-size:.88rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;margin-top:8px}
+.pcard{display:block;text-decoration:none;background:#fff;border:1px solid var(--border);border-radius:16px;padding:22px;box-shadow:var(--shadow);transition:all .18s;position:relative;overflow:hidden}
+.pcard:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:var(--accent-bright)}
+.pcard .pn{width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,var(--accent-bright),var(--accent));color:#fff;display:grid;place-items:center;font-weight:800;font-size:1.05rem;box-shadow:var(--shadow);margin-bottom:12px}
+.pcard h3{margin:0 0 6px;color:var(--ink);font-size:1.05rem}
+.pcard p{margin:0;color:var(--ink-soft);font-size:.88rem}
+.pcard .lvl{display:inline-block;margin-top:12px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;border-radius:6px}
+.lvl.beg{background:#ecfaf1;color:#166c3c}.lvl.int{background:#eef5ff;color:#214a87}.lvl.adv{background:#fdeef0;color:#a62f43}
+@media(max-width:920px){.shell{grid-template-columns:1fr}.sidebar{display:none}}
+@media(max-width:560px){.hero{padding:34px 26px}.card{padding:20px 18px}.pager{flex-direction:column}.pager a.next{text-align:left}}
 </style>
 </head>
 <body>
-<main class="wrap">
-<header class="hero">
-  <span class="eyebrow">Node.js Core</span>
-  <h1>Lesson 2 — Globals, `process` &amp; the Event Loop (Gently)</h1>
-  
-  <div class="chips"><span class="chip">Time: 60 min</span><span class="chip">Goal: Know what's available without <code>require</code>, what <code>process</code> does, and get an intuitive feel for the event loop using small experiments.</span></div>
-</header>
-<nav class="crumbs" aria-label="Breadcrumb">
-  <a href="../index.html">Learn Node.js</a><span>/</span>
-  <a href="index.html">Node.js Core</a><span>/</span>Lesson 2 — Globals, `process` &amp; the Event Loop (Gently)
-</nav>
-<section class="card"><hr></section>
-<section class="card"><h3>1. Globals — things you can use anywhere (10 min) <span class="tag">Concept</span></h3><p>Some names are always available in Node — no <code>require</code> needed.</p><pre><code data-lang="js">console.log("string");        // console — printing
+<div class="shell"><aside class="sidebar">
+<div class="brand"><span class="logo">⚙️</span> Learn Node.js</div>
+<div class="partlabel">Node.js Core · Part 2 of 8</div>
+<a class="home" href="../index.html">← All lessons</a>
+<div class="nav-group-title">On this page</div><a href="#1-globals-things-you-can-use-anywhere-10-m">1. Globals — things you can use anywhere (10 min)</a><a href="#2-process-your-bridge-to-the-os-10-min">2. `process` — your bridge to the OS (10 min)</a><a href="#3-the-event-loop-a-story-before-the-code-1">3. The event loop — a story before the code (15 min)</a><a href="#4-blocking-vs-non-blocking-feel-the-differ">4. Blocking vs non-blocking — feel the difference (10 min)</a><a href="#5-mini-exercise-10-min">5. Mini exercise (10 min)</a><a href="#5-min-recap">5-min recap</a>
+</aside><main class="content"><div class="crumbs"><a href="../index.html">Learn Node.js</a> › <a href="index.html">Node.js Core</a> › <span>Lesson 2 — Globals, `process` &amp; the Event Loop (Gently)</span></div><header class="hero"><div class="eyebrow">Part 2 of 8 · Node.js Core</div><h1>Lesson 2 — Globals, `process` &amp; the Event Loop (Gently)</h1><div class="chips"><span>Time: 60 min</span><span>Goal: Know what's available without <code class="inline">require</code>, what <code class="inline">process</code> does, and get an intuitive feel for the event loop using small experiments.</span></div></header><div class="card" id="overview"><hr></div>
+<div class="card" id="1-globals-things-you-can-use-anywhere-10-m"><h3><span class="tag">Concept</span> 1. Globals — things you can use anywhere (10 min)</h3><p>Some names are always available in Node — no <code class="inline">require</code> needed.</p><pre><code data-lang="javascript">console.log("string");        // console — printing
 setTimeout(fn, 1000);         // schedule async work
 setInterval(fn, 500);
 clearTimeout(id);
@@ -200,11 +103,11 @@ process.cwd();                // current working directory
 __dirname                     // folder this file is in
 __filename                    // full path of this file
 global                        // the global object itself (like `window` in browsers)
-Buffer                        // for binary data</code></pre><p>Try it. Create <code>globals.js</code>:</p><pre><code data-lang="js">console.log("__dirname  :", __dirname);
+Buffer                        // for binary data</code></pre><p>Try it. Create <code class="inline">globals.js</code>:</p><pre><code data-lang="javascript">console.log("__dirname  :", __dirname);
 console.log("__filename :", __filename);
-console.log("cwd        :", process.cwd());</code></pre><p><code>__dirname</code> vs <code>process.cwd()</code> confuses everyone:</p><ul><li><code>__dirname</code> → where <strong>this file</strong> lives.</li><li><code>process.cwd()</code> → where you <strong>ran node from</strong>.</li></ul><p>Run the file from a different folder to see them differ:</p><pre><code data-lang="bash">cd ..
-node node-basics/02-event-loop/globals.js</code></pre></section>
-<section class="card"><h3>2. <code>process</code> — your bridge to the OS (10 min) <span class="tag">Concept</span></h3><p><code>process</code> is one of Node's most useful globals.</p><pre><code data-lang="js">process.version            // "v20.11.0"
+console.log("cwd        :", process.cwd());</code></pre><p><code class="inline">__dirname</code> vs <code class="inline">process.cwd()</code> confuses everyone:</p><ul><li><code class="inline">__dirname</code> → where <strong>this file</strong> lives.</li><li><code class="inline">process.cwd()</code> → where you <strong>ran node from</strong>.</li></ul><p>Run the file from a different folder to see them differ:</p><pre><code data-lang="bash">cd ..
+node node-basics/02-event-loop/globals.js</code></pre></div>
+<div class="card" id="2-process-your-bridge-to-the-os-10-min"><h3><span class="tag">Concept</span> 2. <code class="inline">process</code> — your bridge to the OS (10 min)</h3><p><code class="inline">process</code> is one of Node's most useful globals.</p><pre><code data-lang="javascript">process.version            // "v20.11.0"
 process.platform           // "win32" | "darwin" | "linux"
 process.arch               // "x64"
 process.pid                // process ID
@@ -213,9 +116,9 @@ process.argv               // command-line args (from Lesson 1)
 process.cwd()              // current working directory
 process.uptime()           // seconds since the process started
 process.memoryUsage()      // RAM usage
-process.exit(code)         // stop the process</code></pre><h4><code>process.env</code> — environment variables</h4><p><code>process.env</code> is an object of strings the OS passes in. The <code>PATH</code> variable, secrets, config flags — all live here.</p><pre><code data-lang="js">console.log("PATH starts with:", process.env.PATH.slice(0, 60));
+process.exit(code)         // stop the process</code></pre><h4><code class="inline">process.env</code> — environment variables</h4><p><code class="inline">process.env</code> is an object of strings the OS passes in. The <code class="inline">PATH</code> variable, secrets, config flags — all live here.</p><pre><code data-lang="javascript">console.log("PATH starts with:", process.env.PATH.slice(0, 60));
 console.log("HOME:", process.env.HOME || process.env.USERPROFILE);
-console.log("My var:", process.env.MY_VAR);</code></pre><p>Run with a variable set (PowerShell):</p><pre><code data-lang="bash">$env:MY_VAR="hello"; node env.js</code></pre><p>You'll use <code>process.env</code> for <strong>secrets</strong> (API keys, DB passwords) in Session 9.</p><h4>Process events</h4><pre><code data-lang="js">process.on("exit", (code) =&gt; {
+console.log("My var:", process.env.MY_VAR);</code></pre><p>Run with a variable set (PowerShell):</p><pre><code data-lang="bash">$env:MY_VAR="hello"; node env.js</code></pre><p>You'll use <code class="inline">process.env</code> for <strong>secrets</strong> (API keys, DB passwords) in Session 9.</p><h4>Process events</h4><pre><code data-lang="javascript">process.on("exit", (code) =&gt; {
   console.log(`Goodbye, exit code ${code}`);
 });
 
@@ -223,8 +126,8 @@ process.on("uncaughtException", (err) =&gt; {
   console.error("Crashed because:", err.message);
 });
 
-console.log("Doing work...");</code></pre></section>
-<section class="card"><h3>3. The event loop — a story before the code (15 min) <span class="tag">Concept</span></h3><p>Here's the analogy. Imagine a chef (Node) with <strong>one pair of hands</strong> but a phone (libuv) that can call helpers.</p><ul><li>An order comes in: "boil rice (10 min) + make salad (now)."</li><li>A blocking chef would stand and watch the rice for 10 min. Slow.</li><li>A Node chef:<ol><li>Puts rice on the stove → asks libuv "tell me when it's done."</li><li>Makes the salad now.</li><li>Takes the next order, makes coffee, plates dishes.</li><li>When libuv calls back: "rice done!" — Node serves it.</li></ol></li></ul><p>So Node's secret isn't "do many things at once" — it's "never wait." That's <strong>non-blocking I/O</strong>, and the <strong>event loop</strong> is the chef listening for callbacks.</p><h4>See it yourself</h4><p>Create <code>eventloop.js</code>:</p><pre><code data-lang="js">console.log("1 — sync top");
+console.log("Doing work...");</code></pre></div>
+<div class="card" id="3-the-event-loop-a-story-before-the-code-1"><h3><span class="tag">Concept</span> 3. The event loop — a story before the code (15 min)</h3><p>Here's the analogy. Imagine a chef (Node) with <strong>one pair of hands</strong> but a phone (libuv) that can call helpers.</p><ul><li>An order comes in: "boil rice (10 min) + make salad (now)."</li><li>A blocking chef would stand and watch the rice for 10 min. Slow.</li><li>A Node chef:<ol><li>Puts rice on the stove → asks libuv "tell me when it's done."</li><li>Makes the salad now.</li><li>Takes the next order, makes coffee, plates dishes.</li><li>When libuv calls back: "rice done!" — Node serves it.</li></ol></li></ul><p>So Node's secret isn't "do many things at once" — it's "never wait." That's <strong>non-blocking I/O</strong>, and the <strong>event loop</strong> is the chef listening for callbacks.</p><h4>See it yourself</h4><p>Create <code class="inline">eventloop.js</code>:</p><pre><code data-lang="javascript">console.log("1 — sync top");
 
 setTimeout(() =&gt; console.log("2 — setTimeout 0ms"), 0);
 
@@ -234,25 +137,25 @@ Promise.resolve().then(() =&gt; console.log("4 — promise microtask"));
 
 process.nextTick(() =&gt; console.log("5 — process.nextTick"));
 
-console.log("6 — sync bottom");</code></pre><p><strong>Predict the order before running.</strong> Then run <code>node eventloop.js</code>.</p><p>The output is:</p><pre><code data-lang="text">1 — sync top
+console.log("6 — sync bottom");</code></pre><p><strong>Predict the order before running.</strong> Then run <code class="inline">node eventloop.js</code>.</p><p>The output is:</p><pre><code data-lang="text">1 — sync top
 6 — sync bottom
 5 — process.nextTick
 4 — promise microtask
 2 — setTimeout 0ms      (or 3 — setImmediate; order varies)
-3 — setImmediate</code></pre><p>Why?</p><ul><li><strong>Sync code runs first</strong> (1, 6).</li><li>Then <strong>microtasks</strong> drain: <code>process.nextTick</code> first, then promises (5, 4).</li><li>Then the loop <strong>moves to the next phase</strong>: timers (2) and check (3).</li></ul><p>You don't need to memorize the phases now. <strong>Just remember:</strong></p><div class="callout note"><span class="ico" aria-hidden="true">📌</span><div>Sync code → microtasks (nextTick, promises) → timers/I/O.</div></div></section>
-<section class="card"><h3>4. Blocking vs non-blocking — feel the difference (10 min) <span class="tag">Concept</span></h3><p>Blocking code makes Node sit still. Bad.</p><pre><code data-lang="js">// blocking.js — DO NOT USE in real apps
+3 — setImmediate</code></pre><p>Why?</p><ul><li><strong>Sync code runs first</strong> (1, 6).</li><li>Then <strong>microtasks</strong> drain: <code class="inline">process.nextTick</code> first, then promises (5, 4).</li><li>Then the loop <strong>moves to the next phase</strong>: timers (2) and check (3).</li></ul><p>You don't need to memorize the phases now. <strong>Just remember:</strong></p><div class="callout note"><span class="ico" aria-hidden="true">📌</span><div>Sync code → microtasks (nextTick, promises) → timers/I/O.</div></div></div>
+<div class="card" id="4-blocking-vs-non-blocking-feel-the-differ"><h3><span class="tag">Concept</span> 4. Blocking vs non-blocking — feel the difference (10 min)</h3><p>Blocking code makes Node sit still. Bad.</p><pre><code data-lang="javascript">// blocking.js — DO NOT USE in real apps
 console.log("Start");
 
 const end = Date.now() + 3000;
 while (Date.now() &lt; end) { /* spin for 3 seconds */ }
 
-console.log("End (3s later)");</code></pre><p>While that loop spins, <strong>Node can't do anything else</strong> — no HTTP requests served, no files read. One slow user blocks all users.</p><p>Compare:</p><pre><code data-lang="js">// non-blocking.js
+console.log("End (3s later)");</code></pre><p>While that loop spins, <strong>Node can't do anything else</strong> — no HTTP requests served, no files read. One slow user blocks all users.</p><p>Compare:</p><pre><code data-lang="javascript">// non-blocking.js
 console.log("Start");
 
 setTimeout(() =&gt; console.log("End (3s later)"), 3000);
 
-console.log("Did NOT block — see this immediately.");</code></pre><p>Same total wait, but the chef kept cooking other dishes. This is why Node is great for I/O-heavy work and bad for CPU-heavy work.</p></section>
-<section class="card"><h3>5. Mini exercise (10 min) <span class="tag">Hands-on</span></h3><p>Create <code>predict.js</code>. <strong>Write down your predicted output first</strong>, then run:</p><pre><code data-lang="js">console.log("A");
+console.log("Did NOT block — see this immediately.");</code></pre><p>Same total wait, but the chef kept cooking other dishes. This is why Node is great for I/O-heavy work and bad for CPU-heavy work.</p></div>
+<div class="card" id="5-mini-exercise-10-min"><h3><span class="tag">Hands-on</span> 5. Mini exercise (10 min)</h3><p>Create <code class="inline">predict.js</code>. <strong>Write down your predicted output first</strong>, then run:</p><pre><code data-lang="javascript">console.log("A");
 
 setTimeout(() =&gt; console.log("B"), 0);
 
@@ -264,11 +167,8 @@ process.nextTick(() =&gt; console.log("E"));
 
 setImmediate(() =&gt; console.log("F"));
 
-console.log("G");</code></pre><p>Then explain to yourself <strong>why</strong> each one printed when it did.</p><p><strong>Bonus:</strong> wrap a slow file read with <code>fs.readFileSync</code> vs <code>fs.readFile</code> and observe how the rest of the program behaves.</p><hr></section>
-<section class="card"><h3>5-min recap <span class="tag">Summary</span></h3><ol><li>Difference between <code>__dirname</code> and <code>process.cwd()</code>?</li><li>What is <code>process.env</code> and what would you store there?</li><li>In one sentence, what does "non-blocking" mean?</li><li>Why do <code>process.nextTick</code> callbacks run before <code>setTimeout(fn, 0)</code> callbacks?</li></ol><p>When you're done → <a href="03-modules.html">03-modules.md</a></p></section>
-<nav class="pager" aria-label="Lesson navigation"><a class="prev" href="01-runtime-and-repl.html"><small>Previous</small>Lesson 1 — The Node Runtime, REPL &amp; How Scripts Run</a><a class="next" href="03-modules.html"><small>Next</small>Lesson 3 — Modules: `require`, `module.exports`, and ESM</a></nav>
-<footer>Learn Node.js · Node.js Core · Part 2 of 8 · Built with a light soft-UI docs theme.</footer>
-</main>
+console.log("G");</code></pre><p>Then explain to yourself <strong>why</strong> each one printed when it did.</p><p><strong>Bonus:</strong> wrap a slow file read with <code class="inline">fs.readFileSync</code> vs <code class="inline">fs.readFile</code> and observe how the rest of the program behaves.</p><hr></div>
+<div class="card" id="5-min-recap"><h3><span class="tag">Summary</span> 5-min recap</h3><ol><li>Difference between <code class="inline">__dirname</code> and <code class="inline">process.cwd()</code>?</li><li>What is <code class="inline">process.env</code> and what would you store there?</li><li>In one sentence, what does "non-blocking" mean?</li><li>Why do <code class="inline">process.nextTick</code> callbacks run before <code class="inline">setTimeout(fn, 0)</code> callbacks?</li></ol><p>When you're done → <a href="03-modules.html">03-modules.md</a></p></div><div class="pager"><a class="prev" href="01-runtime-and-repl.html"><span class="dir">← Previous</span><span class="ttl">Lesson 1 — The Node Runtime, REPL &amp; How Scripts Run</span></a><a class="next" href="03-modules.html"><span class="dir">Next →</span><span class="ttl">Lesson 3 — Modules: `require`, `module.exports`, and ESM</span></a></div><footer>Learn Node.js · Node.js Core · Part 2 of 8 · Built with a light soft-UI docs theme.</footer></main></div>
 <script>
 (function(){
   var BT = String.fromCharCode(96);
@@ -276,7 +176,7 @@ console.log("G");</code></pre><p>Then explain to yourself <strong>why</strong> e
     js: new Set(("const let var function return if else for while do switch case break continue "+
       "new class extends super this typeof instanceof in of try catch finally throw async await "+
       "yield import export default from as void delete null undefined true false NaN Infinity "+
-      "static get set require module exports process console global __dirname __filename "+
+      "static get set public private require module exports process console global __dirname __filename "+
       "Promise Array Object String Number Boolean Map Set JSON Math Date Symbol Buffer setTimeout "+
       "setInterval setImmediate fetch").split(" ")),
     bash: new Set(("npm npx node nvm cd ls mkdir rm rmdir git curl wget echo export cat touch pwd "+
@@ -287,10 +187,17 @@ console.log("G");</code></pre><p>Then explain to yourself <strong>why</strong> e
   function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
   function isIdStart(c){return /[A-Za-z_$]/.test(c);}
   function isId(c){return /[A-Za-z0-9_$]/.test(c);}
+  function norm(l){
+    if(l==="javascript"||l==="js"||l==="ts"||l==="typescript"||l==="jsx"||l==="mjs"||l==="cjs")return "js";
+    if(l==="sh"||l==="shell"||l==="bash"||l==="console"||l==="terminal"||l==="zsh"||l==="yaml"||l==="env")return "bash";
+    if(l==="json")return "json";
+    return "text";
+  }
   function highlight(code, lang){
-    if(lang==="text"){return '<span class="t-out">'+esc(code)+'</span>';}
-    var lineComment = (lang==="bash") ? "#" : "//";
-    var kw = KW[lang] || KW.text;
+    var L = norm(lang);
+    if(L==="text"){return '<span class="t-out">'+esc(code)+'</span>';}
+    var lineComment = (L==="bash") ? "#" : "//";
+    var kw = KW[L] || KW.text;
     var out=""; var i=0; var n=code.length;
     while(i<n){
       var c=code[i];
@@ -298,7 +205,7 @@ console.log("G");</code></pre><p>Then explain to yourself <strong>why</strong> e
         var j=code.indexOf("\n",i); if(j<0)j=n;
         out+='<span class="t-com">'+esc(code.slice(i,j))+'</span>'; i=j; continue;
       }
-      if(lang==="js" && c==="/" && code[i+1]==="*"){
+      if(L==="js" && c==="/" && code[i+1]==="*"){
         var e=code.indexOf("*/",i+2); e=(e<0)?n:e+2;
         out+='<span class="t-com">'+esc(code.slice(i,e))+'</span>'; i=e; continue;
       }
@@ -324,16 +231,12 @@ console.log("G");</code></pre><p>Then explain to yourself <strong>why</strong> e
     }
     return out;
   }
-  var labels={js:"JS",bash:"BASH",json:"JSON",text:"TEXT"};
   var blocks=document.querySelectorAll("pre > code[data-lang]");
   for(var b=0;b<blocks.length;b++){
     var el=blocks[b];
-    var lang=el.getAttribute("data-lang")||"text";
+    var lang=(el.getAttribute("data-lang")||"").toLowerCase();
     el.innerHTML=highlight(el.textContent, lang);
-    var chip=document.createElement("span");
-    chip.className="lang-chip";
-    chip.textContent=labels[lang]||lang.toUpperCase();
-    el.parentNode.appendChild(chip);
+    if(lang){ var chip=document.createElement("span"); chip.className="lang"; chip.textContent=lang; el.parentNode.appendChild(chip); }
   }
 })();
 </script>
